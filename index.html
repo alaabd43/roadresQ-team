@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROADGUARD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@500;700;800&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- START SCREEN -->
+<section id="start">
+<div class="hs">
+<div class="stage" id="stage">
+<div class="slide on" data-s="0"><img src="assets/img/s1.jpg" alt="" class="kb"><div class="ov">
+<div class="tag" style="left:20%;top:16%"><span class="dot blink"></span>CAM-01 · ONLINE</div>
+<div class="tag" style="left:47%;top:34%">CAM-02 · ONLINE</div>
+<div class="tag" style="left:44%;top:62%">PTZ · TRACKING</div>
+</div></div>
+<div class="slide" data-s="1"><img src="assets/img/s2.jpg" alt="" class="kb"><div class="ov" id="tracks"></div></div>
+<div class="slide" data-s="2"><img src="assets/img/s3.jpg" alt="" class="kb"><div class="ov">
+<div class="rbox below" style="left:36.5%;top:3%;width:62.5%;height:52%"><b data-t="ovCrash"></b></div>
+</div></div>
+<div class="slide" data-s="3"><img src="assets/img/s4.jpg" alt="" class="kb"><div class="ov">
+<div class="wbox" style="left:26.5%;top:46%;width:14%;height:26%"><b data-t="ovEta"></b></div>
+</div></div>
+</div>
+<div class="grade"></div>
+<div class="topbar">
+<a class="logo" href="#start"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" aria-hidden="true"><path d="M12 3v18M5 21l3-18M19 21l-3-18"/></svg></i>ROADGUARD</a>
+<div class="row" style="align-items:center;flex-wrap:nowrap"><span class="live"><span class="dot blink"></span><span data-t="liveNow"></span></span><button class="btn small" type="button" data-login="staff" data-t="login"></button><button class="lang" type="button" data-lang aria-label="Switch language">EN</button></div>
+</div>
+<div class="hero">
+<div class="hero-in">
+<div class="kicker"><span data-t="kicker"></span></div>
+<h1><span class="ln"><span data-t="h1a"></span></span><span class="ln"><span class="red" data-t="h1b"></span></span></h1>
+<p data-t="heroText"></p>
+<div class="row">
+<button class="btn" type="button" data-login="staff" data-t="enter"></button>
+<button class="btn ghost" type="button" data-login="citizen" data-t="report"></button>
+</div>
+</div>
+<ol class="story" id="story">
+<li><button type="button" data-go-s="0"><i><u></u></i><span data-t="sy1"></span></button></li>
+<li><button type="button" data-go-s="1"><i><u></u></i><span data-t="sy2"></span></button></li>
+<li><button type="button" data-go-s="2"><i><u></u></i><span data-t="sy3"></span></button></li>
+<li><button type="button" data-go-s="3"><i><u></u></i><span data-t="sy4"></span></button></li>
+</ol>
+</div>
+<a class="scrollhint" href="#how" data-t="more"></a>
+</div>
+
+<div class="land">
+<section class="band" id="how">
+<h2 data-t="howT"></h2>
+<p class="lead" data-t="howP"></p>
+<div class="g4">
+<div class="step"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7h13l3 3v7H3z"/><circle cx="16" cy="13" r="2"/></svg><h3 data-t="h1"></h3><p data-t="h1p"></p></div>
+<div class="step"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="4" y="4" width="16" height="16"/><path d="M9 9h6v6H9z"/></svg><h3 data-t="h2"></h3><p data-t="h2p"></p></div>
+<div class="step"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg><h3 data-t="h3"></h3><p data-t="h3p"></p></div>
+<div class="step"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 18c4 0 4-12 8-12s4 12 8 12"/><circle cx="4" cy="18" r="2"/><circle cx="20" cy="18" r="2"/></svg><h3 data-t="h4"></h3><p data-t="h4p"></p></div>
+</div>
+</section>
+
+<section class="band" style="background:#F3F1EE;color:#111">
+<h2 data-t="whoT"></h2>
+<div class="g2">
+<div class="who dark">
+<span class="chip sev3" data-t="whoStaff"></span>
+<h3 data-t="staffH"></h3>
+<ul class="ticks"><li data-t="sf1"></li><li data-t="sf2"></li><li data-t="sf3"></li><li data-t="sf4"></li></ul>
+<button class="btn" type="button" data-login="staff" data-t="staffBtn"></button>
+</div>
+<div class="who">
+<span class="chip sev1" data-t="whoCit"></span>
+<h3 data-t="citH"></h3>
+<ul class="ticks"><li data-t="cf1"></li><li data-t="cf2"></li><li data-t="cf3"></li><li data-t="cf4"></li></ul>
+<button class="btn" type="button" style="background:#111" data-login="citizen" data-t="report"></button>
+</div>
+</div>
+</section>
+
+<section class="band">
+<h2 data-t="whyT"></h2>
+<p class="lead" data-t="whyP"></p>
+<div class="g3" id="why"></div>
+<p class="note" style="margin-top:22px" data-t="whyNote"></p>
+</section>
+
+<section class="band cta">
+<h2 data-t="ctaT"></h2>
+<div class="row" style="justify-content:center">
+<button class="btn" type="button" data-login="citizen" data-t="report"></button>
+<button class="btn ghost" type="button" data-login="staff" data-t="staffBtn"></button>
+</div>
+</section>
+<footer><span>ROADGUARD · RoadResQ</span><span data-t="foot"></span></footer>
+</div>
+</section>
+
+<!-- LOGIN -->
+<div class="modal hidden" id="login" role="dialog" aria-modal="true" aria-labelledby="loginT">
+<form class="mbox" id="loginForm">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 id="loginT" style="font-size:28px" data-t="login"></h2><button type="button" class="x" id="closeLogin" aria-label="close">✕</button></div>
+<div class="seg" role="tablist"><button type="button" role="tab" data-role="staff" data-t="whoStaff"></button><button type="button" role="tab" data-role="citizen" data-t="whoCit"></button></div>
+<div id="fStaff"><label><span data-t="empId"></span><input name="emp" autocomplete="off" inputmode="numeric"></label><label><span data-t="pass"></span><input name="pw" type="password" autocomplete="off"></label></div>
+<div id="fCit" class="hidden"><label><span data-t="phone"></span><input name="ph" type="tel" inputmode="tel" placeholder="07X XXX XXXX" autocomplete="off"></label><div class="row" style="align-items:flex-end"><label style="flex:1"><span data-t="otp"></span><input name="otp" inputmode="numeric" autocomplete="off"></label><button type="button" class="btn light" id="sendOtp" data-t="sendOtp"></button></div><p class="note" data-t="whyLogin"></p></div>
+<button class="btn" type="submit" style="width:100%" data-t="signIn"></button>
+<p class="note" data-t="loginDemo"></p>
+</form>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+<header class="app">
+<a class="logo" href="#start"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" aria-hidden="true"><path d="M12 3v18M5 21l3-18M19 21l-3-18"/></svg></i>ROADGUARD</a>
+<nav class="tabs" aria-label="sections">
+<button type="button" data-tab="live" data-t="tLive"></button>
+<button type="button" data-tab="map" data-t="tMap"></button>
+<button type="button" data-tab="incidents" data-t="tInc"></button>
+<button type="button" data-tab="upload" data-t="tUp"></button>
+<button type="button" data-tab="report" data-t="tRep"></button>
+</nav>
+<div class="row" style="align-items:center;flex-wrap:nowrap"><span class="note" id="roleBadge"></span><button class="lang" type="button" id="logout" data-t="logout"></button><button class="lang" type="button" data-lang aria-label="Switch language">EN</button></div>
+</header>
+
+<main>
+<!-- LIVE -->
+<section id="v-live">
+<div class="title"><h2 data-t="liveTitle"></h2><span class="note" data-t="demo"></span></div>
+<div class="cams" id="cams"></div>
+<div class="grid2">
+<div class="panel">
+<div class="feed">
+<video id="feedVid" src="assets/video/cam01.mp4" autoplay muted loop playsinline preload="auto"></video>
+<div class="box"><b>CRASH · p=0.87</b></div>
+<div class="hud" style="top:12px;right:12px"><span class="dot blink"></span>LIVE · CAM-01</div>
+<div class="hud" style="bottom:12px;left:12px" id="clock">--:--:--</div><div class="hud" style="top:12px;left:12px">AI · <span data-t="aiOn"></span></div>
+</div>
+<div class="pad">
+<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><strong data-t="probTitle"></strong><span class="note" data-t="probNote"></span></div>
+<div class="fig"><svg id="prob" role="img" aria-label="probability over time"></svg></div>
+</div>
+</div>
+<div class="panel pad">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+<div><h3 style="font-size:26px" data-t="incType"></h3><div class="note" style="margin-top:6px" data-t="incWhere"></div></div>
+<span class="chip sev2" data-t="sev2"></span>
+</div>
+<div class="kv">
+<div><span data-t="kTime"></span><strong class="t">14:32:07</strong></div>
+<div><span data-t="kCam"></span><strong>CAM-01</strong></div>
+<div><span data-t="kCars"></span><strong>2</strong></div>
+<div><span data-t="kSpeed"></span><strong data-t="speedVal"></strong></div>
+</div>
+<strong data-t="unitsTitle"></strong>
+<div class="units" id="units"></div>
+<div class="row">
+<button class="btn" type="button" id="sendBtn" style="flex:1" data-t="send"></button>
+<button class="btn light" type="button" id="falseBtn" data-t="falseAlarm"></button>
+</div>
+<button class="btn ghost" type="button" style="width:100%;margin-top:12px" data-go="map" data-t="showRoute"></button>
+</div>
+</div>
+<div class="levels">
+<div class="panel"><span class="chip sev1" style="align-self:flex-start" data-t="sev1"></span><h3 style="font-size:20px" data-t="l1h"></h3><p data-t="l1p"></p></div>
+<div class="panel"><span class="chip sev2" style="align-self:flex-start" data-t="sev2"></span><h3 style="font-size:20px" data-t="l2h"></h3><p data-t="l2p"></p></div>
+<div class="panel"><span class="chip sev3" style="align-self:flex-start" data-t="sev3"></span><h3 style="font-size:20px" data-t="l3h"></h3><p data-t="l3p"></p></div>
+</div>
+</section>
+
+<!-- MAP -->
+<section id="v-map" class="hidden">
+<div class="title"><h2 data-t="mapTitle"></h2><span class="note" data-t="mapNote"></span></div>
+<div class="grid2">
+<div class="mapwrap"><div id="map" role="region" aria-label="Jordan map"></div></div>
+<div class="panel pad">
+<strong data-t="fromTitle"></strong>
+<div class="stations" id="stations"></div>
+<strong data-t="routesTitle"></strong>
+<div id="routes" style="margin-top:10px"></div>
+<button class="btn" type="button" id="goBtn" style="width:100%" data-t="startNav"></button>
+<div class="legend">
+<span><svg width="28" height="8" aria-hidden="true"><line x1="0" y1="4" x2="28" y2="4" stroke="#2FBF71" stroke-width="5"/></svg><span data-t="tr0"></span></span>
+<span><svg width="28" height="8" aria-hidden="true"><line x1="0" y1="4" x2="28" y2="4" stroke="#F07A1A" stroke-width="5" stroke-dasharray="7 4"/></svg><span data-t="tr1"></span></span>
+<span><svg width="28" height="8" aria-hidden="true"><line x1="0" y1="4" x2="28" y2="4" stroke="#E3242B" stroke-width="5" stroke-dasharray="3 3"/></svg><span data-t="tr2"></span></span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- INCIDENTS -->
+<section id="v-incidents" class="hidden">
+<div class="title"><h2 data-t="incTitle"></h2><span class="note" data-t="demo"></span></div>
+<div class="grid2">
+<div class="panel" style="overflow-x:auto"><table><thead><tr><th data-t="thTime"></th><th data-t="thPlace"></th><th data-t="thType"></th><th data-t="thSev"></th><th class="hide-sm" data-t="thStatus"></th></tr></thead><tbody id="incRows"></tbody></table></div>
+<div class="panel pad" id="incDetail"></div>
+</div>
+</section>
+
+<!-- UPLOAD -->
+<section id="v-upload" class="hidden">
+<div class="title"><h2 data-t="upTitle"></h2><span class="note" data-t="demo"></span></div>
+<div class="panel pad">
+<label class="drop" for="file">
+<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
+<strong style="font-size:20px" data-t="upPick"></strong>
+<span class="note" data-t="upHint"></span>
+<span class="btn" data-t="upBtn"></span>
+</label>
+<input id="file" type="file" accept="video/*" class="hidden">
+<div id="upState" style="margin-top:20px"></div>
+</div>
+</section>
+<!-- CITIZEN REPORT -->
+<section id="v-report" class="hidden">
+<div class="title"><h2 data-t="repT"></h2><span class="note" data-t="demo"></span></div>
+<div class="grid2">
+<form class="panel pad" id="repForm">
+<strong data-t="rq1"></strong>
+<div class="units" id="rtype"></div>
+<strong data-t="rq2"></strong>
+<label class="drop small" for="rfile"><span data-t="rq2b"></span><span class="note" data-t="rq2c"></span></label>
+<input id="rfile" type="file" accept="image/*,video/*" class="hidden">
+<div id="rprev" class="rprev hidden"></div>
+<strong style="display:block;margin-top:18px" data-t="rq3"></strong>
+<div class="loc"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span data-t="locVal"></span></div>
+<strong style="display:block;margin-top:18px" data-t="rq4"></strong>
+<div class="units" id="rflags"></div>
+<label style="display:block;margin-top:6px"><span class="note" data-t="rq5"></span><textarea name="desc" rows="3"></textarea></label>
+<button class="btn" type="submit" style="width:100%;margin-top:16px" data-t="rSend"></button>
+<p class="note" style="margin-top:10px" data-t="call911"></p>
+</form>
+<div class="panel pad">
+<strong data-t="trackT"></strong>
+<ol class="track" id="track"></ol>
+<div id="aid" class="aid"></div>
+</div>
+</div>
+</section>
+</main>
+<footer><span>ROADGUARD · RoadResQ</span><span data-t="foot"></span></footer>
+</div>
+<div id="toast" class="hidden" role="status"></div>
+<script src="js/jordan-data.js"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
+
+<script src="js/app.js"></script>
+</body>
+</html>
