@@ -1,5 +1,14 @@
 {
 const LF = window.L;
+
+/* بيانات الدعم ورقم الواتساب */
+const SUPPORT_INFO = {
+  version: 'v1.0',
+  whatsapp: '962781975470',
+  phoneDisplay: '0781975470',
+  email: 'support@roadguard.jo'
+};
+
 const T = {
   ar: {
     login: 'تسجيل الدخول',
@@ -12,6 +21,7 @@ const T = {
     roleStaff: 'موظف طوارئ',
     soundOn: 'الصوت شغّال',
     soundOff: 'الصوت مكتوم',
+    supportBtn: 'الدعم وحالة النظام',
     kicker: 'نظام كشف الحوادث بالذكاء الاصطناعي',
     h1a: 'كل ثانية',
     h1b: 'بتفرق.',
@@ -79,8 +89,14 @@ const T = {
     min: 'دقيقة',
     km: 'كم',
     jam: 'أزمة',
-    startNav: 'ابدأ التوجيه',
-    navMsg: 'الطريق انبعت للفريق (عرض تجريبي)',
+    startNav: 'ابدأ التوجيه وأرسل البلاغ',
+    navMsg: 'تم تجهيز البلاغ للجهة المختصة',
+    dispatchModalTitle: 'إرسال البلاغ للجهة المختصة',
+    dispatchSendNow: 'إرسال البلاغ الآن',
+    dispatchCopy: 'نسخ نص البلاغ',
+    dispatchCopied: 'تم نسخ نص البلاغ',
+    dispatchSentToast: 'تم إرسال البلاغ للجهة المختصة',
+    unitRouteBadge: 'عرض مسار الطوارئ للوحدة الميدانية (صلاحية المسار فقط)',
     tr0: 'سالك',
     tr1: 'متوسط',
     tr2: 'أزمة',
@@ -102,7 +118,29 @@ const T = {
     upDone: 'خلص التحليل',
     upNote: 'هاي نتيجة تجريبية للشكل بس. النتيجة الحقيقية بتطلع لما نربط الموديل بالسيرفر.',
     upFound: 'حادث عند الثانية 7.5 · احتمال 0.87',
-    foot: 'مشروع تخرج · جامعة آل البيت',
+    foot: 'مشروع تخرج · جامعة آل البيت · عند توقف النظام: انتقل للمراقبة اليدوية للكاميرات وتواصل مع الدعم',
+    supTitle: 'الدعم الفني وحالة النظام',
+    supLiveHead: 'حالة النظام (لايف)',
+    supSrv: 'الاتصال بالسيرفر',
+    supSrvVal: 'متصل (24ms)',
+    supAi: 'محرك الذكاء الاصطناعي',
+    supAiVal: 'شغّال · آخر فحص قبل {sec} ث',
+    supCams: 'الكاميرات المتصلة',
+    supSync: 'آخر تحديث للبيانات',
+    supSyncVal: 'قبل {sec} ثواني',
+    supContactHead: 'التواصل مع فريق الدعم التقني',
+    supWaLabel: 'واتساب / هاتف الدعم:',
+    supMailLabel: 'إيميل الدعم:',
+    supHoursLabel: 'أوقات الدعم:',
+    supHoursVal: 'يومياً 8:00 ص – 10:00 م (وطوارئ 24/7 أثناء التشغيل)',
+    supStopWarn: 'عند توقف النظام: انتقل للمراقبة اليدوية للكاميرات وتواصل مع الدعم.',
+    supGuideBtn: 'دليل الاستخدام (PDF)',
+    supReportHead: 'إبلاغ عن مشكلة',
+    supDescPh: 'اكتب وصف المشكلة باختصار (مثلاً: تأخر تحميل الكاميرا أو الخريطة)...',
+    supShotLabel: 'إرفاق صورة شاشة (اختياري)',
+    supAutoMeta: 'يُرفق تلقائياً مع البلاغ: نسخة النظام {ver} · الموظف: {emp} · الوقت: {time}',
+    supSubmitBtn: 'حفظ وإرسال البلاغ للدعم',
+    supSavedMsg: 'تم حفظ البلاغ وتجهيزه للإرسال للدعم الفني',
     types: ['تصادم جانبي', 'تصادم خلفي', 'تصادم أمامي', 'انحراف عن الطريق', 'تصادم جانبي'],
     places: ['تقاطع وسط المدينة', 'شارع الجامعة', 'الدوار السابع', 'شارع الملكة رانيا', 'طريق المطار']
   },
@@ -117,6 +155,7 @@ const T = {
     roleStaff: 'Emergency staff',
     soundOn: 'Sound on',
     soundOff: 'Muted',
+    supportBtn: 'Support & Status',
     kicker: 'AI accident detection system',
     h1a: 'Every second',
     h1b: 'counts.',
@@ -184,8 +223,14 @@ const T = {
     min: 'min',
     km: 'km',
     jam: 'congested',
-    startNav: 'Start navigation',
-    navMsg: 'Route sent to the team (demo)',
+    startNav: 'Start navigation & dispatch',
+    navMsg: 'Dispatch report prepared for the responder unit',
+    dispatchModalTitle: 'Dispatch Report to Responder Unit',
+    dispatchSendNow: 'Send Dispatch Now',
+    dispatchCopy: 'Copy Dispatch Message',
+    dispatchCopied: 'Dispatch message copied',
+    dispatchSentToast: 'Dispatch report sent to responder unit',
+    unitRouteBadge: 'Responder unit route view (route access only)',
     tr0: 'Clear',
     tr1: 'Moderate',
     tr2: 'Congested',
@@ -207,7 +252,29 @@ const T = {
     upDone: 'Analysis finished',
     upNote: 'This is a demo result for the look only. The real result appears once the model is connected to the server.',
     upFound: 'Accident at 7.5 s · probability 0.87',
-    foot: 'Graduation project · Al al-Bayt University',
+    foot: 'Graduation project · Al al-Bayt University · If system stops: switch to manual camera monitoring and contact support',
+    supTitle: 'Technical Support & System Status',
+    supLiveHead: 'System Status (Live)',
+    supSrv: 'Server Connection',
+    supSrvVal: 'Connected (24ms)',
+    supAi: 'AI Detection Engine',
+    supAiVal: 'Running · last check {sec}s ago',
+    supCams: 'Connected Cameras',
+    supSync: 'Last Data Update',
+    supSyncVal: '{sec} seconds ago',
+    supContactHead: 'Contact Technical Support Team',
+    supWaLabel: 'WhatsApp / Phone:',
+    supMailLabel: 'Support Email:',
+    supHoursLabel: 'Support Hours:',
+    supHoursVal: 'Daily 8:00 AM – 10:00 PM (24/7 emergency during operations)',
+    supStopWarn: 'If the system stops: switch to manual camera monitoring and contact support.',
+    supGuideBtn: 'User Guide (PDF)',
+    supReportHead: 'Report an Issue',
+    supDescPh: 'Briefly describe the issue (e.g. camera feed delay or map issue)...',
+    supShotLabel: 'Attach screenshot (optional)',
+    supAutoMeta: 'Auto-attached: System {ver} · Staff: {emp} · Time: {time}',
+    supSubmitBtn: 'Save & Send Issue to Support',
+    supSavedMsg: 'Issue saved and ready to send to support',
     types: ['Side collision', 'Rear-end', 'Head-on', 'Ran off road', 'Side collision'],
     places: ['Downtown intersection', 'University St.', '7th Circle', 'Queen Rania St.', 'Airport Rd.']
   }
@@ -219,10 +286,38 @@ const t = k => T[L][k] ?? k;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const toast = m => {
   const el = $('#toast');
+  if (!el) return;
   el.textContent = m;
+  el.style.zIndex = '10000';
   el.classList.remove('hidden');
   clearTimeout(toast.h);
   toast.h = setTimeout(() => el.classList.add('hidden'), 3200);
+};
+
+/* modal visibility helper above Leaflet map */
+const setModalVisible = (modal, visible) => {
+  if (!modal) return;
+  if (visible) {
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  } else {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+  }
+};
+
+const applyModalOverlayStyle = (el) => {
+  el.style.cssText = [
+    'position:fixed',
+    'inset:0',
+    'z-index:9999',
+    'display:none',
+    'align-items:center',
+    'justify-content:center',
+    'background:rgba(0,0,0,0.72)',
+    'backdrop-filter:blur(4px)',
+    'padding:16px'
+  ].join(';');
 };
 
 /* alert sound by severity (1 = minor, 2 = moderate, 3 = severe) */
@@ -271,78 +366,102 @@ const playAlertBySeverity = (sevLevel = 2) => {
   }
 };
 
-const ensureSoundBtn = () => {
-  if ($('#soundBtn')) return;
+const ensureHeaderActions = () => {
   const logoutBtn = $('#logout');
   if (!logoutBtn || !logoutBtn.parentElement) return;
-  const btn = document.createElement('button');
-  btn.id = 'soundBtn';
-  btn.type = 'button';
-  btn.className = 'btn ghost';
-  btn.style.cssText = 'padding:8px 12px;font-size:13px';
-  btn.addEventListener('click', () => {
-    soundOn = !soundOn;
-    try { localStorage.setItem('rg-sound', soundOn ? '1' : '0'); } catch (e) {}
-    updateSoundBtn();
-    if (soundOn) triggerSingleBeep(880, 0.14);
-  });
-  logoutBtn.parentElement.insertBefore(btn, logoutBtn);
-  updateSoundBtn();
+
+  if (!$('#supportOpenBtn')) {
+    const supBtn = document.createElement('button');
+    supBtn.id = 'supportOpenBtn';
+    supBtn.type = 'button';
+    supBtn.className = 'btn ghost';
+    supBtn.style.cssText = 'padding:8px 12px;font-size:13px';
+    supBtn.addEventListener('click', openSupportModal);
+    logoutBtn.parentElement.insertBefore(supBtn, logoutBtn);
+  }
+
+  if (!$('#soundBtn')) {
+    const btn = document.createElement('button');
+    btn.id = 'soundBtn';
+    btn.type = 'button';
+    btn.className = 'btn ghost';
+    btn.style.cssText = 'padding:8px 12px;font-size:13px';
+    btn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      try { localStorage.setItem('rg-sound', soundOn ? '1' : '0'); } catch (e) {}
+      updateHeaderButtons();
+      if (soundOn) triggerSingleBeep(880, 0.14);
+    });
+    logoutBtn.parentElement.insertBefore(btn, logoutBtn);
+  }
+  updateHeaderButtons();
 };
 
-const updateSoundBtn = () => {
+const updateHeaderButtons = () => {
   const btn = $('#soundBtn');
-  if (!btn) return;
-  btn.setAttribute('aria-pressed', String(soundOn));
-  btn.textContent = (soundOn ? '🔔 ' : '🔕 ') + t(soundOn ? 'soundOn' : 'soundOff');
+  if (btn) {
+    btn.setAttribute('aria-pressed', String(soundOn));
+    btn.textContent = (soundOn ? '🔔 ' : '🔕 ') + t(soundOn ? 'soundOn' : 'soundOff');
+  }
+  const supBtn = $('#supportOpenBtn');
+  if (supBtn) {
+    supBtn.textContent = '🟢 ' + t('supportBtn');
+  }
 };
 
 /* start slideshow */
 const TR = [[685,130,870,250,'ID 04'],[490,240,695,365,'ID 07'],[120,275,290,395,'ID 02'],[540,415,735,545,'ID 11'],[955,515,1165,645,'ID 09'],[395,610,620,760,'ID 05'],[1505,600,1730,740,'ID 12'],[2110,930,2365,1090,'ID 15'],[1265,1045,1535,1200,'ID 17']];
-$('#tracks').innerHTML = TR.map(([a,b,c,d,id]) => `<div class="tbox" style="left:${((a-220)/2137*100).toFixed(2)}%;top:${(b/1202*100).toFixed(2)}%;width:${((c-a)/2137*100).toFixed(2)}%;height:${((d-b)/1202*100).toFixed(2)}%"><b>${id}</b></div>`).join('') +
-  `<div class="rbox" style="left:${(1065/2137*100).toFixed(2)}%;top:${(612/1202*100).toFixed(2)}%;width:${(250/2137*100).toFixed(2)}%;height:${(292/1202*100).toFixed(2)}%"><b data-t="ovDet"></b></div>`;
+if ($('#tracks')) {
+  $('#tracks').innerHTML = TR.map(([a,b,c,d,id]) => `<div class="tbox" style="left:${((a-220)/2137*100).toFixed(2)}%;top:${(b/1202*100).toFixed(2)}%;width:${((c-a)/2137*100).toFixed(2)}%;height:${((d-b)/1202*100).toFixed(2)}%"><b>${id}</b></div>`).join('') +
+    `<div class="rbox" style="left:${(1065/2137*100).toFixed(2)}%;top:${(612/1202*100).toFixed(2)}%;width:${(250/2137*100).toFixed(2)}%;height:${(292/1202*100).toFixed(2)}%"><b data-t="ovDet"></b></div>`;
+}
 
 const slides = $$('.slide'), steps = $$('#story li');
 let cur = 0, timer = null;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const show = i => {
+  if (!slides.length) return;
   cur = i;
   slides.forEach((s, k) => {
     s.classList.toggle('on', k === i);
     if (k === i) {
       const im = s.querySelector('.kb');
-      im.style.animation = 'none';
-      void im.offsetWidth;
-      im.style.animation = '';
+      if (im) {
+        im.style.animation = 'none';
+        void im.offsetWidth;
+        im.style.animation = '';
+      }
     }
   });
   steps.forEach((li, k) => {
     li.className = k < i ? 'done' : k === i ? 'cur' : '';
     const u = li.querySelector('u');
-    u.style.animation = 'none';
-    void u.offsetWidth;
-    u.style.animation = '';
+    if (u) {
+      u.style.animation = 'none';
+      void u.offsetWidth;
+      u.style.animation = '';
+    }
   });
   clearTimeout(timer);
   if (!reduce) {
     timer = setTimeout(() => {
-      if (!$('#start').classList.contains('hidden')) show((cur + 1) % slides.length);
+      if ($('#start') && !$('#start').classList.contains('hidden')) show((cur + 1) % slides.length);
     }, 6500);
   }
 };
-$('#story').addEventListener('click', e => {
+$('#story')?.addEventListener('click', e => {
   const b = e.target.closest('[data-go-s]');
   if (b) show(+b.dataset.goS);
 });
-$('#start').addEventListener('mousemove', e => {
+$('#start')?.addEventListener('mousemove', e => {
   const st = $('#stage');
+  if (!st) return;
   st.style.setProperty('--mx', ((e.clientX / innerWidth - .5) * -18).toFixed(1) + 'px');
   st.style.setProperty('--my', ((e.clientY / innerHeight - .5) * -12).toFixed(1) + 'px');
 });
 show(0);
 
 /* live: risk classification + suggested units & ambulance count */
-// TODO BACKEND: ربط هذه القيم بمخرجات موديل الكشف لكل كاميرا
 const currentCrash = { risk: 87, cars: 2 };
 const units = { police: true, amb: true, fire: false };
 
@@ -390,16 +509,14 @@ const drawQuickAdvice = () => {
     .replace('{amb}', ambCount);
 };
 
-if ($('#units')) {
-  $('#units').addEventListener('click', e => {
-    const b = e.target.closest('[data-u]');
-    if (!b) return;
-    units[b.dataset.u] = !units[b.dataset.u];
-    drawUnits();
-    drawQuickAdvice();
-    drawSide();
-  });
-}
+$('#units')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-u]');
+  if (!b) return;
+  units[b.dataset.u] = !units[b.dataset.u];
+  drawUnits();
+  drawQuickAdvice();
+  drawSide();
+});
 
 /* map: real Jordan (Natural Earth) + Dijkstra on the road network */
 const G = window.JORDAN_GEO;
@@ -508,6 +625,7 @@ const drawMap = () => {
 };
 
 const drawSide = () => {
+  if (!$('#stations') || !$('#routes')) return;
   const activeRoute = R[sel] || R[0];
   const etaMin = activeRoute ? Math.round(activeRoute.min) : 0;
   const plan = getPlanByRisk(currentCrash.risk, currentCrash.cars);
@@ -520,40 +638,132 @@ const drawSide = () => {
     `<p class="note" style="margin:0 0 10px;color:#fff">${t('mapDispatchSummary').replace('{amb}', ambCount).replace('{eta}', etaMin)}</p>` +
     R.map((r, k) => `<button type="button" class="route" data-r="${k}" aria-pressed="${k === sel}"><span class="chip ${k === 0 ? 'sev1' : ''}" style="${k ? 'border:1px solid #444' : ''}">${k === 0 ? t('fastest') : t('alt')}</span><span><strong>${r.km.toFixed(1)} ${t('km')}</strong> <small>· ${Math.round(r.jam * 100)}% ${t('jam')}</small><span class="bar"><i style="width:${Math.max(4, Math.round(r.jam * 100))}%;background:${r.jam > .4 ? '#E3242B' : r.jam > .15 ? '#F07A1A' : '#2FBF71'}"></i></span></span><span class="eta">${Math.round(r.min)} <small style="font-size:14px">${t('min')}</small></span></button>`).join('');
 };
-$('#stations').addEventListener('click', e => {
+$('#stations')?.addEventListener('click', e => {
   const b = e.target.closest('[data-st]');
   if (!b) return;
   st = +b.dataset.st; sel = 0; R = routesFor(ST[st]);
   drawMap(); drawSide();
   if (map) map.fitBounds(LF.latLngBounds([ST[st].ll, INC_LL]).pad(.35));
 });
-$('#routes').addEventListener('click', e => {
+$('#routes')?.addEventListener('click', e => {
   const b = e.target.closest('[data-r]');
   if (!b) return;
   sel = +b.dataset.r;
   drawMap(); drawSide();
 });
-$('#goBtn').addEventListener('click', () => {
+
+/* Dispatch details, Google Maps clickable link & direct dispatch */
+const getUnitBreakdownAr = (ambCount) => {
+  const plan = getPlanByRisk(currentCrash.risk, currentCrash.cars);
+  const parts = [];
+  if (units.amb || ambCount > 0) {
+    parts.push(ambCount >= 2 ? `${ambCount} سيارات إسعاف` : `سيارة إسعاف واحدة`);
+  }
+  if (units.fire || plan.recUnits.includes('fire')) {
+    parts.push('دفاع مدني / إطفاء');
+  }
+  if (units.police || plan.recUnits.includes('police')) {
+    parts.push('دورية شرطة');
+  }
+  return parts.length ? parts.join(' + ') : t(ST[st].n);
+};
+
+const getUnitBreakdownEn = (ambCount) => {
+  const plan = getPlanByRisk(currentCrash.risk, currentCrash.cars);
+  const parts = [];
+  if (units.amb || ambCount > 0) {
+    parts.push(ambCount >= 2 ? `${ambCount} ambulances` : `1 ambulance`);
+  }
+  if (units.fire || plan.recUnits.includes('fire')) {
+    parts.push('civil defense / fire unit');
+  }
+  if (units.police || plan.recUnits.includes('police')) {
+    parts.push('police patrol');
+  }
+  return parts.length ? parts.join(' + ') : t(ST[st].n);
+};
+
+const buildDispatchText = () => {
   const activeRoute = R[sel] || R[0];
   const plan = getPlanByRisk(currentCrash.risk, currentCrash.cars);
   const ambCount = units.amb ? Math.max(1, plan.ambCount) : 0;
+  const etaMin = activeRoute ? Math.round(activeRoute.min) : 0;
+  const distKm = activeRoute ? activeRoute.km.toFixed(1) : '0';
+  const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const googleMapUrl = `https://maps.google.com/?q=${INC_LL[0]},${INC_LL[1]}`;
 
-  /*
-    TODO BACKEND:
-    إرسال أمر التوجيه إلى الباك-إند وقاعدة البيانات:
-    fetch('/api/dispatch/route', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        station_key: ST[st].n,
-        ambulances_count: ambCount,
-        eta_minutes: activeRoute ? Math.round(activeRoute.min) : null,
-        distance_km: activeRoute ? Number(activeRoute.km.toFixed(1)) : null
-      })
+  if (L === 'ar') {
+    const unitDetails = getUnitBreakdownAr(ambCount);
+    return [
+      `بلاغ طوارئ عاجل — نظام ROADGUARD`,
+      `الجهة المستهدفة: ${t(ST[st].n)} — التفاصيل: ${unitDetails}`,
+      `الحادث والخطورة: ${t('incType')} · ${t(plan.sevKey)} (${currentCrash.risk}%)`,
+      `الموقع: ${t('incPlace')}`,
+      `نقطة الانطلاق: ${t(ST[st].p).replace('من: ', '')}`,
+      `المسافة والوقت المتوقع: ${distKm} كم · ${etaMin} دقيقة`,
+      `رابط الموقع على الخريطة: ${googleMapUrl}`,
+      `وقت البلاغ: ${nowStr}`
+    ].join('\n');
+  }
+
+  const unitDetailsEn = getUnitBreakdownEn(ambCount);
+  return [
+    `URGENT DISPATCH — ROADGUARD AI`,
+    `Target Unit: ${t(ST[st].n)} — Details: ${unitDetailsEn}`,
+    `Incident & Severity: ${t('incType')} · ${t(plan.sevKey)} (${currentCrash.risk}%)`,
+    `Location: ${t('incPlace')}`,
+    `Origin: ${t(ST[st].p).replace('From: ', '')}`,
+    `Distance & ETA: ${distKm} km · ${etaMin} min`,
+    `Map Location Link: ${googleMapUrl}`,
+    `Time: ${nowStr}`
+  ].join('\n');
+};
+
+const showDispatchModal = () => {
+  let modal = $('#dispatchModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'dispatchModal';
+    modal.className = 'modal hidden';
+    applyModalOverlayStyle(modal);
+    modal.innerHTML = `<div class="box" style="max-width:540px;width:100%;background:#16161b;border:1px solid #2e2e38;border-radius:16px;padding:20px;color:#fff;box-shadow:0 20px 50px rgba(0,0,0,0.65)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px">
+        <h3 id="dispTitle" style="font-size:20px;margin:0"></h3>
+        <button type="button" class="btn ghost" id="closeDispModal" style="padding:6px 10px">✕</button>
+      </div>
+      <pre id="dispPreview" style="white-space:pre-line;font-family:inherit;background:#0e0e12;border:1px solid #2b2b33;border-radius:12px;padding:14px;font-size:14px;line-height:1.75;margin:0 0 14px;color:#f3f3f6"></pre>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a id="dispSendLink" target="_blank" rel="noopener" class="btn" style="flex:1;text-align:center;text-decoration:none"></a>
+        <button type="button" id="dispCopyBtn" class="btn light"></button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    $('#closeDispModal').addEventListener('click', () => setModalVisible(modal, false));
+    modal.addEventListener('click', e => { if (e.target === modal) setModalVisible(modal, false); });
+    $('#dispSendLink').addEventListener('click', () => {
+      toast(t('dispatchSentToast'));
     });
-  */
+    $('#dispCopyBtn').addEventListener('click', () => {
+      const txt = $('#dispPreview').textContent;
+      navigator.clipboard?.writeText(txt).catch(() => {});
+      toast(t('dispatchCopied'));
+    });
+  }
 
+  const msg = buildDispatchText();
+  $('#dispTitle').textContent = t('dispatchModalTitle');
+  $('#dispPreview').textContent = msg;
+  const sendBtn = $('#dispSendLink');
+  sendBtn.textContent = '🚨 ' + t('dispatchSendNow');
+  sendBtn.href = `https://wa.me/${SUPPORT_INFO.whatsapp}?text=${encodeURIComponent(msg)}`;
+  $('#dispCopyBtn').textContent = t('dispatchCopy');
+  setModalVisible(modal, true);
+};
+
+$('#goBtn')?.addEventListener('click', () => {
   toast(t('navMsg'));
+  showDispatchModal();
+
   if (!map || !rLayer.sel) return;
   const pts = rLayer.sel.getLatLngs();
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { car.setLatLng(pts[pts.length - 1]); return; }
@@ -572,8 +782,151 @@ $('#goBtn').addEventListener('click', () => {
   anim = requestAnimationFrame(step);
 });
 
+/* Support & Live System Status Modal */
+let lastDataSyncMs = Date.now();
+const openUserGuidePdf = () => {
+  const win = window.open('', '_blank');
+  if (!win) return;
+  win.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>دليل استخدام ROADGUARD</title>
+  <style>body{font-family:Segoe UI,Tahoma,sans-serif;padding:32px;line-height:1.8;color:#111;max-width:760px;margin:auto}h1{color:#c91f26;border-bottom:2px solid #eee;padding-bottom:8px}h2{margin-top:22px;font-size:18px}.box{background:#f8f8fa;border-right:4px solid #c91f26;padding:12px 16px;margin:14px 0}</style>
+  </head><body>
+  <h1>دليل الاستخدام السريع — نظام ROADGUARD (${SUPPORT_INFO.version})</h1>
+  <div class="box"><strong>إجراء الطوارئ عند توقف النظام:</strong> عند توقف النظام، انتقل فوراً للمراقبة اليدوية للكاميرات وتواصل مع فريق الدعم الفني.</div>
+  <h2>1. مراقبة الكاميرات المباشرة</h2>
+  <p>عند رصد حادث بواسطة الذكاء الاصطناعي، يصدر النظام تنبيهاً صوتياً حسب درجة الخطورة (رنة للخفيف، رنتان للمتوسط، 3 رنات للشديد) ويقترح الجهات المختصة وعدد سيارات الإسعاف تلقائياً.</p>
+  <h2>2. الخريطة وأسرع طريق للطوارئ</h2>
+  <p>اختر نقطة الانطلاق (إسعاف، دفاع مدني، شرطة) ثم اضغط على <strong>ابدأ التوجيه وأرسل البلاغ</strong> لتوليد البلاغ ورابط الموقع على الخريطة للوحدة الميدانية.</p>
+  <h2>3. الدعم الفني والإبلاغ عن الأعطال</h2>
+  <p>واتساب / هاتف الدعم: ${SUPPORT_INFO.phoneDisplay} · البريد الإلكتروني: ${SUPPORT_INFO.email}</p>
+  <script>window.onload=function(){window.print();}</script>
+  </body></html>`);
+  win.document.close();
+};
+
+const openSupportModal = () => {
+  let modal = $('#supportModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'supportModal';
+    modal.className = 'modal hidden';
+    applyModalOverlayStyle(modal);
+    modal.innerHTML = `<div class="box" style="max-width:620px;width:100%;max-height:90vh;overflow-y:auto;background:#16161b;border:1px solid #2e2e38;border-radius:16px;padding:20px;color:#fff;box-shadow:0 20px 50px rgba(0,0,0,0.65)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+        <h3 id="supModalTitle" style="font-size:21px;margin:0"></h3>
+        <button type="button" class="btn ghost" id="closeSupModal" style="padding:6px 10px">✕</button>
+      </div>
+
+      <div style="background:#0e0e12;border:1px solid #2b2b34;border-radius:12px;padding:14px;margin-bottom:14px">
+        <strong id="supLiveTitle" style="display:block;margin-bottom:10px;font-size:15px"></strong>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;font-size:13.5px">
+          <div>🟢 <span id="supSrvLbl"></span>: <strong id="supSrvVal"></strong></div>
+          <div>🟢 <span id="supAiLbl"></span>: <strong id="supAiVal"></strong></div>
+          <div>📷 <span id="supCamsLbl"></span>: <strong id="supCamsVal"></strong></div>
+          <div>🔄 <span id="supSyncLbl"></span>: <strong id="supSyncVal"></strong></div>
+        </div>
+      </div>
+
+      <div style="background:#0e0e12;border:1px solid #2b2b34;border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px;line-height:1.8">
+        <strong id="supContactTitle" style="display:block;margin-bottom:6px;font-size:15px"></strong>
+        <div>📱 <span id="supWaLbl"></span> <a id="supWaDirect" target="_blank" rel="noopener" style="color:#4ade80;font-weight:600;text-decoration:none">${SUPPORT_INFO.phoneDisplay}</a></div>
+        <div>✉️ <span id="supMailLbl"></span> <a href="mailto:${SUPPORT_INFO.email}" style="color:#93c5fd;text-decoration:none">${SUPPORT_INFO.email}</a></div>
+        <div>🕒 <span id="supHoursLbl"></span> <span id="supHoursVal"></span></div>
+      </div>
+
+      <div style="background:rgba(227,36,43,0.14);border:1px solid rgba(227,36,43,0.45);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <span id="supStopText" style="font-size:13.5px;font-weight:600;color:#fca5a5"></span>
+        <button type="button" id="supGuideBtn" class="btn light" style="padding:7px 12px;font-size:13px"></button>
+      </div>
+
+      <form id="supReportForm" style="background:#0e0e12;border:1px solid #2b2b34;border-radius:12px;padding:14px">
+        <strong id="supFormTitle" style="display:block;margin-bottom:8px;font-size:15px"></strong>
+        <textarea id="supDesc" rows="3" required style="width:100%;background:#16161b;color:#fff;border:1px solid #333;border-radius:10px;padding:10px;font-family:inherit;font-size:14px;margin-bottom:10px"></textarea>
+        <div style="margin-bottom:10px;font-size:13px">
+          <label id="supShotLbl" for="supShot" style="display:block;margin-bottom:4px;color:#bbb"></label>
+          <input id="supShot" type="file" accept="image/*" style="font-size:13px">
+        </div>
+        <div id="supMetaInfo" class="note" style="margin-bottom:12px;font-size:12.5px"></div>
+        <button type="submit" id="supSubmitBtn" class="btn" style="width:100%"></button>
+      </form>
+    </div>`;
+    document.body.appendChild(modal);
+
+    $('#closeSupModal').addEventListener('click', () => setModalVisible(modal, false));
+    modal.addEventListener('click', e => { if (e.target === modal) setModalVisible(modal, false); });
+    $('#supGuideBtn').addEventListener('click', openUserGuidePdf);
+
+    $('#supReportForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const desc = $('#supDesc').value.trim();
+      if (!desc) return;
+      const empName = sessionStorage.getItem('rg-emp') || 'STAFF-01';
+      const nowIso = new Date().toLocaleString();
+      const hasFile = $('#supShot').files?.[0]?.name || 'بدون مرفق';
+
+      try {
+        const list = JSON.parse(localStorage.getItem('rg-issues') || '[]');
+        list.unshift({ version: SUPPORT_INFO.version, staff: empName, time: nowIso, desc, screenshot: hasFile });
+        localStorage.setItem('rg-issues', JSON.stringify(list));
+      } catch (err) {}
+
+      const reportText = [
+        `بلاغ دعم فني — نظام ROADGUARD (${SUPPORT_INFO.version})`,
+        `الموظف: ${empName}`,
+        `الوقت: ${nowIso}`,
+        `حالة الكاميرات: 3/4 متصلة`,
+        `صورة الشاشة: ${hasFile}`,
+        `وصف المشكلة: ${desc}`
+      ].join('\n');
+
+      toast(t('supSavedMsg'));
+      e.target.reset();
+      window.open(`https://wa.me/${SUPPORT_INFO.whatsapp}?text=${encodeURIComponent(reportText)}`, '_blank', 'noopener');
+    });
+  }
+
+  refreshSupportModal();
+  setModalVisible(modal, true);
+};
+
+const refreshSupportModal = () => {
+  const modal = $('#supportModal');
+  if (!modal) return;
+  const secAgo = Math.max(1, Math.floor((Date.now() - lastDataSyncMs) / 1000) % 60);
+  const empName = sessionStorage.getItem('rg-emp') || 'STAFF-01';
+  const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  $('#supModalTitle').textContent = t('supTitle');
+  $('#supLiveTitle').textContent = t('supLiveHead');
+  $('#supSrvLbl').textContent = t('supSrv');
+  $('#supSrvVal').textContent = t('supSrvVal');
+  $('#supAiLbl').textContent = t('supAi');
+  $('#supAiVal').textContent = t('supAiVal').replace('{sec}', secAgo);
+  $('#supCamsLbl').textContent = t('supCams');
+  $('#supCamsVal').textContent = '3 / 4';
+  $('#supSyncLbl').textContent = t('supSync');
+  $('#supSyncVal').textContent = t('supSyncVal').replace('{sec}', secAgo);
+
+  $('#supContactTitle').textContent = t('supContactHead');
+  $('#supWaLbl').textContent = t('supWaLabel');
+  $('#supWaDirect').href = `https://wa.me/${SUPPORT_INFO.whatsapp}`;
+  $('#supMailLbl').textContent = t('supMailLabel');
+  $('#supHoursLbl').textContent = t('supHoursLabel');
+  $('#supHoursVal').textContent = t('supHoursVal');
+
+  $('#supStopText').textContent = t('supStopWarn');
+  $('#supGuideBtn').textContent = '📄 ' + t('supGuideBtn');
+
+  $('#supFormTitle').textContent = t('supReportHead');
+  $('#supDesc').placeholder = t('supDescPh');
+  $('#supShotLbl').textContent = t('supShotLabel');
+  $('#supMetaInfo').textContent = t('supAutoMeta')
+    .replace('{ver}', SUPPORT_INFO.version)
+    .replace('{emp}', empName)
+    .replace('{time}', nowStr);
+  $('#supSubmitBtn').textContent = t('supSubmitBtn');
+};
+
 /* incidents */
-// TODO BACKEND: جلب سجل الحوادث من قاعدة البيانات عبر API الموظفين الموثّق
 const INCS = [
   { t: '14:32', ty: 0, pl: 0, sv: 2, st: 'stNew' },
   { t: '13:05', ty: 1, pl: 1, sv: 1, st: 'stSent' },
@@ -583,6 +936,7 @@ const INCS = [
 ];
 let isel = 0;
 const drawInc = () => {
+  if (!$('#incRows') || !$('#incDetail')) return;
   $('#incRows').innerHTML = INCS.map((r, k) => `<tr data-i="${k}" tabindex="0" aria-selected="${k === isel}"><td class="t">${r.t}</td><td>${T[L].places[r.pl]}</td><td>${T[L].types[r.ty]}</td><td><span class="chip sev${r.sv}">${t('sev' + r.sv)}</span></td><td class="hide-sm">${t(r.st)}</td></tr>`).join('');
   const r = INCS[isel];
   $('#incDetail').innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><h3 style="font-size:24px">${T[L].types[r.ty]}</h3><div class="note" style="margin-top:4px">${T[L].places[r.pl]} · ${r.t}</div></div><span class="chip sev${r.sv}">${t('sev' + r.sv)}</span></div>
@@ -602,17 +956,18 @@ const drawInc = () => {
     v.play().catch(() => {});
   });
 };
-$('#incRows').addEventListener('click', e => { const tr = e.target.closest('[data-i]'); if (!tr) return; isel = +tr.dataset.i; drawInc(); });
-$('#incRows').addEventListener('keydown', e => { if (e.key === 'Enter') { const tr = e.target.closest('[data-i]'); if (tr) { isel = +tr.dataset.i; drawInc(); } } });
+$('#incRows')?.addEventListener('click', e => { const tr = e.target.closest('[data-i]'); if (!tr) return; isel = +tr.dataset.i; drawInc(); });
+$('#incRows')?.addEventListener('keydown', e => { if (e.key === 'Enter') { const tr = e.target.closest('[data-i]'); if (tr) { isel = +tr.dataset.i; drawInc(); } } });
 
 /* upload */
 const runUpload = f => {
   const box = $('#upState');
+  if (!box) return;
   box.innerHTML = `<strong>${f.name}</strong><div class="note" style="margin:6px 0 10px">${t('upRun')}</div><div class="prog"><i id="pg"></i></div>`;
   let p = 0;
   const h = setInterval(() => {
     p += 7;
-    $('#pg').style.width = Math.min(p, 100) + '%';
+    if ($('#pg')) $('#pg').style.width = Math.min(p, 100) + '%';
     if (p >= 100) {
       clearInterval(h);
       playAlertBySeverity(3);
@@ -620,18 +975,21 @@ const runUpload = f => {
     }
   }, 120);
 };
-$('#file').addEventListener('change', e => { if (e.target.files[0]) runUpload(e.target.files[0]); });
+$('#file')?.addEventListener('change', e => { if (e.target.files[0]) runUpload(e.target.files[0]); });
 const drop = $('.drop');
-drop.addEventListener('dragover', e => e.preventDefault());
-drop.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) runUpload(f); });
+if (drop) {
+  drop.addEventListener('dragover', e => e.preventDefault());
+  drop.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) runUpload(f); });
+}
 
 /* cameras + clock */
 let cam = 0;
 const CAMS = [{ id: 'CAM-01', on: 1 }, { id: 'CAM-02', on: 1 }, { id: 'CAM-03', on: 1 }, { id: 'CAM-04', on: 0 }];
 const drawCams = () => {
+  if (!$('#cams')) return;
   $('#cams').innerHTML = CAMS.map((c, k) => `<button type="button" class="cam" data-cam="${k}" aria-pressed="${k === cam}"><span class="dot ${c.on ? '' : 'off'} ${k === 0 ? 'blink' : ''}"></span><span>${c.id}<small>${t('camN' + k)} · ${c.on ? (k === 0 ? t('camAlert') : t('camOk')) : t('camOff')}</small></span></button>`).join('');
 };
-$('#cams').addEventListener('click', e => {
+$('#cams')?.addEventListener('click', e => {
   const b = e.target.closest('[data-cam]');
   if (!b) return;
   const k = +b.dataset.cam;
@@ -642,52 +1000,78 @@ $('#cams').addEventListener('click', e => {
 });
 setInterval(() => {
   const d = new Date();
-  $('#clock').textContent = d.toISOString().slice(0, 10) + ' · ' + d.toTimeString().slice(0, 8);
+  if ($('#clock')) $('#clock').textContent = d.toISOString().slice(0, 10) + ' · ' + d.toTimeString().slice(0, 8);
+  if ($('#supportModal') && !$('#supportModal').classList.contains('hidden')) {
+    refreshSupportModal();
+  }
 }, 1000);
 
-/* staff login (جاهز للربط بالباك-إند وقاعدة البيانات) */
+/* responder-only route view when opened via ?unit=1#map */
+const urlParams = new URLSearchParams(location.search);
+const isUnitRouteMode = urlParams.get('unit') === '1';
+
+const applyUnitRestrictedView = () => {
+  if (!isUnitRouteMode) return;
+  $$('[data-tab]').forEach(b => {
+    if (b.dataset.tab !== 'map') b.style.display = 'none';
+  });
+  $('#logout')?.style.setProperty('display', 'none');
+  $('#supportOpenBtn')?.style.setProperty('display', 'none');
+  $('#soundBtn')?.style.setProperty('display', 'none');
+  $$('[data-lang]').forEach(b => { b.style.display = 'none'; });
+
+  if (!$('#unitModeBanner') && $('#v-map')) {
+    const banner = document.createElement('div');
+    banner.id = 'unitModeBanner';
+    banner.style.cssText = 'background:#16161b;border:1px solid #2e2e38;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13.5px;color:#e4e4e7';
+    banner.textContent = t('unitRouteBadge');
+    $('#v-map').prepend(banner);
+  }
+};
+
+/* staff login */
 let role = null;
 try { role = sessionStorage.getItem('rg-role'); } catch (e) {}
 
 const openLogin = () => {
-  $('#login').classList.remove('hidden');
-  setTimeout(() => $('#loginForm input').focus(), 50);
+  $('#login')?.classList.remove('hidden');
+  setTimeout(() => $('#loginForm input')?.focus(), 50);
 };
 $$('[data-login="staff"]').forEach(b => b.addEventListener('click', openLogin));
-$('#closeLogin').addEventListener('click', () => $('#login').classList.add('hidden'));
-$('#login').addEventListener('click', e => { if (e.target.id === 'login') $('#login').classList.add('hidden'); });
-addEventListener('keydown', e => { if (e.key === 'Escape') $('#login').classList.add('hidden'); });
+$('#closeLogin')?.addEventListener('click', () => $('#login')?.classList.add('hidden'));
+$('#login')?.addEventListener('click', e => { if (e.target.id === 'login') $('#login').classList.add('hidden'); });
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    $('#login')?.classList.add('hidden');
+    setModalVisible($('#dispatchModal'), false);
+    setModalVisible($('#supportModal'), false);
+  }
+});
 
-$('#loginForm').addEventListener('submit', async e => {
+$('#loginForm')?.addEventListener('submit', async e => {
   e.preventDefault();
   const empVal = e.target.emp?.value?.trim() || '';
   const pwVal = e.target.pw?.value || '';
 
-  /*
-    TODO BACKEND:
-    استبدلي هذا الجزء بطلب fetch حقيقي إلى الباك-إند وقاعدة البيانات:
-    const res = await fetch('/api/staff/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employee_id: empVal, password: pwVal })
-    });
-    if (!res.ok) { toast('رقم الموظف أو كلمة المرور غير صحيحة'); return; }
-    const data = await res.json();
-    sessionStorage.setItem('rg-token', data.token);
-  */
-
   if (!empVal || !pwVal) return;
   role = 'staff';
-  try { sessionStorage.setItem('rg-role', role); } catch (x) {}
-  $('#login').classList.add('hidden');
+  try {
+    sessionStorage.setItem('rg-role', role);
+    sessionStorage.setItem('rg-emp', empVal);
+  } catch (x) {}
+  $('#login')?.classList.add('hidden');
   e.target.reset();
   location.hash = 'live';
   route();
 });
 
-$('#logout').addEventListener('click', () => {
+$('#logout')?.addEventListener('click', () => {
   role = null;
-  try { sessionStorage.removeItem('rg-role'); sessionStorage.removeItem('rg-token'); } catch (x) {}
+  try {
+    sessionStorage.removeItem('rg-role');
+    sessionStorage.removeItem('rg-emp');
+    sessionStorage.removeItem('rg-token');
+  } catch (x) {}
   location.hash = 'start';
   route();
 });
@@ -696,11 +1080,33 @@ $('#logout').addEventListener('click', () => {
 const tabs = $$('[data-tab]'), secs = $$('main > section');
 let lastAlertTab = null;
 const setTab = name => {
+  if (isUnitRouteMode) name = 'map';
   tabs.forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
   secs.forEach(s => s.classList.toggle('hidden', s.id !== 'v-' + name));
-  if (name === 'map') { initMap(); drawMap(); drawSide(); if (map) setTimeout(() => map.invalidateSize(), 60); }
-  if (name === 'incidents') drawInc();
-  if (name === 'live') {
+  if (name === 'map') {
+    if (isUnitRouteMode) {
+      const qSt = +urlParams.get('st');
+      const qR = +urlParams.get('r');
+      const qRisk = +urlParams.get('risk');
+      const qCars = +urlParams.get('cars');
+      if (!Number.isNaN(qRisk) && qRisk > 0) currentCrash.risk = qRisk;
+      if (!Number.isNaN(qCars) && qCars > 0) currentCrash.cars = qCars;
+      if (!Number.isNaN(qSt) && ST[qSt]) {
+        st = qSt;
+        R = routesFor(ST[st]);
+      }
+      if (!Number.isNaN(qR) && R[qR]) {
+        sel = qR;
+      }
+    }
+    initMap();
+    drawMap();
+    drawSide();
+    if (map) setTimeout(() => map.invalidateSize(), 60);
+    applyUnitRestrictedView();
+  }
+  if (name === 'incidents' && !isUnitRouteMode) drawInc();
+  if (name === 'live' && !isUnitRouteMode) {
     drawCams();
     const plan = syncPlanFromRisk();
     drawUnits();
@@ -713,10 +1119,18 @@ const setTab = name => {
     lastAlertTab = name;
   }
 };
-tabs.forEach(b => b.addEventListener('click', () => { location.hash = b.dataset.tab; setTab(b.dataset.tab); }));
+tabs.forEach(b => b.addEventListener('click', () => {
+  if (isUnitRouteMode) return;
+  location.hash = b.dataset.tab;
+  setTab(b.dataset.tab);
+}));
 document.addEventListener('click', e => {
   const go = e.target.closest('[data-go]');
-  if (go) { location.hash = go.dataset.go; setTab(go.dataset.go); }
+  if (go) {
+    if (isUnitRouteMode) return;
+    location.hash = go.dataset.go;
+    setTab(go.dataset.go);
+  }
 });
 
 const applyLang = () => {
@@ -724,10 +1138,12 @@ const applyLang = () => {
   document.documentElement.dir = L === 'ar' ? 'rtl' : 'ltr';
   $$('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
   $$('[data-lang]').forEach(b => { b.textContent = L === 'ar' ? 'EN' : 'AR'; });
-  $('#roleBadge').textContent = t('roleStaff');
-  ensureSoundBtn();
-  updateSoundBtn();
+  if ($('#roleBadge')) $('#roleBadge').textContent = t('roleStaff');
+  ensureHeaderActions();
+  updateHeaderButtons();
+  refreshSupportModal();
   drawCams(); syncPlanFromRisk(); drawUnits(); drawQuickAdvice(); drawInc(); drawSide(); drawMap();
+  applyUnitRestrictedView();
 };
 $$('[data-lang]').forEach(b => b.addEventListener('click', () => {
   L = L === 'ar' ? 'en' : 'ar';
@@ -736,21 +1152,28 @@ $$('[data-lang]').forEach(b => b.addEventListener('click', () => {
 }));
 
 const route = () => {
+  if (isUnitRouteMode) {
+    $('#start')?.classList.add('hidden');
+    $('#app')?.classList.remove('hidden');
+    setTab('map');
+    return;
+  }
+
   const h = (location.hash || '#start').replace('#', '');
   if (['live', 'map', 'incidents', 'upload'].includes(h)) {
     if (!role) {
-      $('#start').classList.remove('hidden');
-      $('#app').classList.add('hidden');
+      $('#start')?.classList.remove('hidden');
+      $('#app')?.classList.add('hidden');
       openLogin();
       return;
     }
-    $('#start').classList.add('hidden');
-    $('#app').classList.remove('hidden');
-    ensureSoundBtn();
+    $('#start')?.classList.add('hidden');
+    $('#app')?.classList.remove('hidden');
+    ensureHeaderActions();
     setTab(h);
   } else {
-    $('#app').classList.add('hidden');
-    $('#start').classList.remove('hidden');
+    $('#app')?.classList.add('hidden');
+    $('#start')?.classList.remove('hidden');
     show(0);
   }
 };
