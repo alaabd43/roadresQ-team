@@ -160,10 +160,88 @@ $('#replayBtn').addEventListener('click',()=>{sh.classList.add('hidden');v.class
 $('#incRows').addEventListener('click',e=>{const tr=e.target.closest('[data-i]');if(!tr)return;isel=+tr.dataset.i;drawInc()});
 $('#incRows').addEventListener('keydown',e=>{if(e.key==='Enter'){const tr=e.target.closest('[data-i]');if(tr){isel=+tr.dataset.i;drawInc()}}});
 
-/* upload */
-const runUpload=f=>{const box=$('#upState');box.innerHTML=`<strong>${f.name}</strong><div class="note" style="margin:6px 0 10px">${t('upRun')}</div><div class="prog"><i id="pg"></i></div>`;let p=0;const h=setInterval(()=>{p+=7;$('#pg').style.width=Math.min(p,100)+'%';if(p>=100){clearInterval(h);box.innerHTML=`<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="chip sev3">${t('upDone')}</span><strong>${t('upFound')}</strong></div><p class="note" style="margin-top:10px">${t('upNote')}</p><button class="btn" type="button" data-go="live" style="margin-top:8px">${t('tLive')}</button>`}},120)};
-$('#file').addEventListener('change',e=>{if(e.target.files[0])runUpload(e.target.files[0])});
-const drop=$('.drop');drop.addEventListener('dragover',e=>e.preventDefault());drop.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)runUpload(f)});
+/* recording analysis (تحليل تسجيل) */
+Object.assign(T.ar,{tUp:'تحليل تسجيل',upTitle:'تحليل تسجيل',upSub:'ارفع فيديو مسجّل، والنظام بيكشف إذا فيه حادث. هاي الصفحة مش بث مباشر.',upHint:'MP4 أو AVI · من كاميرا، أو جوال مواطن، أو تسجيل قديم',
+upS1:'رفع الفيديو',upS2:'التحليل',upS3:'النتيجة',stSend:'جاري رفع الفيديو…',stRun:'جاري التحليل…',stDone:'تم التحليل',stErr:'فشل التحليل',upRunNote:'التحليل ممكن ياخذ كم دقيقة حسب طول الفيديو. بتقدر تتفرج على الفيديو لحد ما يخلص.',
+upNone:'ما في حوادث بهاد الفيديو',upNoneP:'النظام فحص الفيديو كامل وما لقى حادث. إذا شايف غير هيك، راجع الفيديو بنفسك.',upFoundN:'حوادث مكتشفة: ',upSum:'ملخص الحوادث',
+upVidRes:'الفيديو مع مربعات السيارات',upVidOrig:'الفيديو الأصلي',kEv:'الأدلة',kLevel:'الحالة',lvConfirmed:'مؤكد',lvReview:'بحاجة مراجعة',noEv:'ما في',sev0:'غير محدد',sevW:'خطورة ',
+openInc:'فتح الحادث',upAgain:'حلّل فيديو ثاني',retry:'حاول مرة ثانية',upDemo:'شوف عرض تجريبي',upErrP:'ما قدرنا نوصل للسيرفر، أو صار خطأ بالتحليل.',upErrHint:'تأكد إنه السيرفر شغّال على: ',upBad:'هاد الملف مش فيديو',
+demoTag:'عرض تجريبي: النتيجة مش حقيقية',jump:'روح لهاي اللحظة بالفيديو',shotAt:'صورة لحظة الحادث',incDemo:'صفحة الحوادث لسا ببيانات تجريبية',
+ctRear:'تصادم خلفي',ctHead:'تصادم أمامي',ctT:'تصادم جانبي',ctSide:'احتكاك جانبي',ctSingle:'حادث سيارة وحدة',ctX:'حادث',
+evDamage:'ضرر بالسيارة',evDebris:'حطام',evFire:'دخان أو نار',evOver:'انقلاب',evPed:'دهس مشاة'});
+Object.assign(T.en,{tUp:'Recording analysis',upTitle:'Recording analysis',upSub:'Upload a recorded video and the system checks it for accidents. This page is not a live feed.',upHint:'MP4 or AVI · from a camera, a citizen\'s phone, or an old recording',
+upS1:'Upload',upS2:'Analysis',upS3:'Result',stSend:'Uploading video…',stRun:'Analyzing…',stDone:'Analysis done',stErr:'Analysis failed',upRunNote:'Analysis can take a few minutes depending on video length. You can watch the video meanwhile.',
+upNone:'No accidents in this video',upNoneP:'The system checked the whole video and found no accident. If you think otherwise, review the video yourself.',upFoundN:'Accidents found: ',upSum:'Accident summary',
+upVidRes:'Video with vehicle boxes',upVidOrig:'Original video',kEv:'Evidence',kLevel:'Status',lvConfirmed:'Confirmed',lvReview:'Needs review',noEv:'None',sev0:'Unknown',sevW:'Severity: ',
+openInc:'Open incident',upAgain:'Analyze another video',retry:'Try again',upDemo:'See a demo result',upErrP:'We could not reach the server, or the analysis failed.',upErrHint:'Make sure the server is running at: ',upBad:'This file is not a video',
+demoTag:'Demo: this result is not real',jump:'Jump to this moment',shotAt:'Crash moment',incDemo:'The incidents page still uses demo data',
+ctRear:'Rear-end collision',ctHead:'Head-on collision',ctT:'Side (T-bone) collision',ctSide:'Sideswipe',ctSingle:'Single-vehicle crash',ctX:'Accident',
+evDamage:'Vehicle damage',evDebris:'Debris',evFire:'Smoke or fire',evOver:'Rollover',evPed:'Pedestrian hit'});
+/* backend address: set window.ROADGUARD_API before app.js to change it */
+const API=(window.ROADGUARD_API||'http://localhost:5000').replace(/\/$/,'');
+const CT={'rear-end':'ctRear','head-on':'ctHead','t-bone':'ctT','sideswipe':'ctSide','single':'ctSingle'};
+const EV={damage:'evDamage',debris:'evDebris',smoke_or_fire:'evFire',fire:'evFire',overturned:'evOver',pedestrian:'evPed',pedestrian_hit:'evPed'};
+const SV={high:3,medium:2,low:1};
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const fmtS=s=>{s=Math.max(0,+s||0);const m=Math.floor(s/60);return m+':'+(s%60).toFixed(1).padStart(4,'0')};
+const media=u=>u?(/^https?:/.test(u)?u:API+u):null;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const DEMO=[{id:null,time:2.55,type:'rear-end',sev:'high',ev:['debris','smoke_or_fire'],cars:2,level:'confirmed',units:{police:1,ambulance:2,civil_defense:1},img:null}];
+let up={st:'idle'},upRun=0;
+const toAlert=x=>{const ev=[...(x.evidence||[])];if(x.fire&&!ev.includes('smoke_or_fire'))ev.push('smoke_or_fire');if(x.overturned)ev.push('overturned');if(x.pedestrian_hit)ev.push('pedestrian_hit');
+return{id:x.id,time:x.time_s,type:x.crash_type,sev:x.severity,ev,cars:x.vehicles,level:x.level,units:{police:x.police,ambulance:x.ambulance,civil_defense:x.civil_defense},img:media(x.crash_image_url)}};
+const startUp=async f=>{if(!f)return;if(f.type&&!f.type.startsWith('video')){toast(t('upBad'));return}
+const id=++upRun;if(up.url&&up.file!==f)URL.revokeObjectURL(up.url);
+up={st:'send',file:f,url:up.file===f?up.url:URL.createObjectURL(f),video:null,alerts:[],err:'',demo:false};drawUp();
+try{const fd=new FormData();fd.append('video',f);fd.append('camera_id','upload');
+const r=await fetch(API+'/api/analyze',{method:'POST',body:fd});const j=await r.json();if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+if(id!==upRun)return;up.st='run';drawUp();
+let job=null;for(let i=0;i<450;i++){await sleep(2000);if(id!==upRun)return;job=await (await fetch(API+'/api/jobs/'+j.job_id)).json();if(job.status!=='processing')break}
+if(!job||job.status==='processing')throw new Error('timeout');
+if(job.status==='error'){let m='';try{m=JSON.parse(job.result_json).error}catch(e){}throw new Error(m||'error')}
+const all=await (await fetch(API+'/api/incidents')).json();if(id!==upRun)return;
+const mine=all.filter(x=>x.job_id===j.job_id).sort((a,b)=>a.time_s-b.time_s);
+up.alerts=mine.map(toAlert);up.video=media(mine[0]&&mine[0].video_url);up.st='done'}
+catch(e){if(id!==upRun)return;up.st='err';up.err=String(e&&e.message||e)}
+drawUp()};
+const upDemo=()=>{upRun++;up={...up,st:'done',alerts:DEMO,video:null,demo:true,err:''};drawUp()};
+const upReset=()=>{upRun++;if(up.url)URL.revokeObjectURL(up.url);up={st:'idle'};$('#file').value='';drawUp()};
+const unitTxt=u=>[['police','police'],['ambulance','amb'],['civil_defense','fire']].filter(([k])=>+u[k]>0).map(([k,l])=>`<span class="unit" aria-pressed="true">${t(l)}${+u[k]>1?' ×'+(+u[k]):''}</span>`).join('');
+const alertCard=(a,k)=>{const sv=SV[a.sev]||0;return `<article class="upinc">
+<div class="head"><button type="button" class="uptime" data-seek="${+a.time||0}" aria-label="${t('jump')}">▶ <span dir="ltr">${fmtS(a.time)}</span></button><span class="chip sev${sv}">${sv?t('sevW')+t('sev'+sv):t('sev0')}</span></div>
+<h3>${k+1}. ${t(CT[a.type]||'ctX')}</h3>
+${a.img?`<img src="${esc(a.img)}" alt="${t('shotAt')}" loading="lazy">`:''}
+<div class="kv"><div><span>${t('kCars')}</span><strong>${esc(a.cars??'—')}</strong></div><div><span>${t('kLevel')}</span><strong>${a.level==='review'?t('lvReview'):t('lvConfirmed')}</strong></div></div>
+<div><span class="note">${t('kEv')}</span><div class="tags">${a.ev.length?a.ev.map(e=>`<span class="tagx">${esc(EV[e]?t(EV[e]):e)}</span>`).join(''):`<span class="tagx">${t('noEv')}</span>`}</div></div>
+<div><span class="note">${t('unitsTitle')}</span><div class="units" style="margin:6px 0 0">${unitTxt(a.units)||`<span class="tagx">${t('noEv')}</span>`}</div></div>
+<button class="btn" type="button" data-openinc="${a.id??''}">${t('openInc')}</button>
+</article>`};
+const drawUp=()=>{const box=$('#upState'),pick=$('#upPick');
+if(up.st==='idle'){box.classList.add('hidden');box.innerHTML='';pick.classList.remove('hidden');return}
+box.classList.remove('hidden');pick.classList.add('hidden');
+const order=['send','run','done'],cur=up.st==='err'?-1:order.indexOf(up.st);
+const steps=['upS1','upS2','upS3'].map((s,k)=>`<li class="${up.st==='err'?(k===1?'bad':''):k<cur||up.st==='done'?'ok':k===cur?'now':''}">${t(s)}</li>`).join('');
+const label={send:'stSend',run:'stRun',done:'stDone',err:'stErr'}[up.st];
+const vsrc=up.video||up.url,old=$('#upVid'),tpos=old&&old.getAttribute('src')===vsrc?old.currentTime:0;
+let side='';
+if(up.st==='send'||up.st==='run')side=`<div class="prog run"><i></i></div><p class="note" style="margin-top:12px">${t('upRunNote')}</p>`;
+else if(up.st==='err')side=`<div class="uperr"><strong>${t('upErrP')}</strong><p class="note" style="margin:8px 0 0">${t('upErrHint')}<span dir="ltr">${esc(API)}</span><br><span dir="ltr">${esc(up.err)}</span></p></div><div class="row"><button class="btn" type="button" data-up="retry">${t('retry')}</button><button class="btn light" type="button" data-up="demo">${t('upDemo')}</button></div>`;
+else side=(up.demo?`<p class="chip sev1" style="margin:0 0 14px">${t('demoTag')}</p>`:'')+(up.alerts.length?`<strong class="upsumt">${t('upSum')} · ${t('upFoundN')}${up.alerts.length}</strong>${up.alerts.map(alertCard).join('')}`:`<div class="upempty"><span class="chip ok">✓ ${t('upNone')}</span><p style="margin:10px 0 0">${t('upNoneP')}</p></div>`);
+box.innerHTML=`<div class="panel pad">
+<div class="uphead"><ol class="upsteps">${steps}</ol><span class="chip ${up.st==='done'?'ok':up.st==='err'?'sev3':'sev0'}">${t(label)}</span></div>
+<div class="upgrid">
+<div><div class="upvid"><video id="upVid" src="${esc(vsrc)}" controls muted playsinline preload="metadata"></video><div class="hud" style="top:10px;left:10px">${up.video?t('upVidRes'):t('upVidOrig')}</div></div>
+<p class="note" style="margin-top:8px" dir="auto">${esc(up.file.name)}</p></div>
+<div class="upside">${side}</div>
+</div>
+${up.st==='done'||up.st==='err'?`<button class="btn ghost" type="button" data-up="again" style="margin-top:20px">${t('upAgain')}</button>`:''}
+</div>`;
+if(tpos){const v=$('#upVid');v.addEventListener('loadedmetadata',()=>{v.currentTime=tpos},{once:true})}};
+$('#upState').addEventListener('click',e=>{const s=e.target.closest('[data-seek]');if(s){const v=$('#upVid');if(!v)return;const go=()=>{v.currentTime=Math.max(0,+s.dataset.seek-1);v.play().catch(()=>{})};v.readyState?go():v.addEventListener('loadedmetadata',go,{once:true});v.scrollIntoView({behavior:'smooth',block:'center'});return}
+const o=e.target.closest('[data-openinc]');if(o){location.hash='incidents';toast(t('incDemo'));return}
+const b=e.target.closest('[data-up]');if(!b)return;const a=b.dataset.up;if(a==='retry')startUp(up.file);else if(a==='demo')upDemo();else upReset()});
+$('#file').addEventListener('change',e=>{if(e.target.files[0])startUp(e.target.files[0])});
+const drop=$('.drop');drop.addEventListener('dragover',e=>e.preventDefault());drop.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)startUp(f)});
 
 /* cameras + clock */
 let cam=0;const CAMS=[{id:'CAM-01',on:1},{id:'CAM-02',on:1},{id:'CAM-03',on:1},{id:'CAM-04',on:0}];
@@ -199,7 +277,7 @@ const apply=()=>{document.documentElement.lang=L;document.documentElement.dir=L=
 $$('[data-t]').forEach(el=>el.textContent=t(el.dataset.t));
 $$('[data-lang]').forEach(b=>{b.textContent=L==='ar'?'EN':'عربي';b.setAttribute('aria-label',L==='ar'?'Switch to English':'التحويل للعربي')});
 $('#feedVid').setAttribute('aria-label',L==='ar'?'بث كاميرا التقاطع':'Intersection camera feed');
-drawUnits();drawCams();drawWhy();drawRep();drawProb();drawMap();drawSide();drawInc()};
+drawUnits();drawCams();drawWhy();drawRep();drawProb();drawMap();drawSide();drawInc();drawUp()};
 document.addEventListener('click',e=>{const l=e.target.closest('[data-lang]');if(l){L=L==='ar'?'en':'ar';try{localStorage.setItem('rg-lang',L)}catch(x){}apply();return}
 const lg=e.target.closest('[data-login]');if(lg){openLogin(lg.dataset.login);return}
 const g=e.target.closest('[data-go],[data-tab]');if(g){location.hash=g.dataset.go||g.dataset.tab}});

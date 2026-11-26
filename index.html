@@ -119,9 +119,10 @@
 <a class="logo" href="#start"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" aria-hidden="true"><path d="M12 3v18M5 21l3-18M19 21l-3-18"/></svg></i>ROADGUARD</a>
 <nav class="tabs" aria-label="sections">
 <button type="button" data-tab="live" data-t="tLive"></button>
-<button type="button" data-tab="map" data-t="tMap"></button>
 <button type="button" data-tab="incidents" data-t="tInc"></button>
-<button type="button" data-tab="upload" data-t="tUp"></button>
+<button type="button" data-tab="map" data-t="tMap"></button>
+<span class="tabsep" aria-hidden="true"></span>
+<button type="button" class="tool" data-tab="upload" data-t="tUp"></button>
 <button type="button" data-tab="report" data-t="tRep"></button>
 </nav>
 <div class="row" style="align-items:center;flex-wrap:nowrap"><span class="note" id="roleBadge"></span><button class="lang" type="button" id="logout" data-t="logout"></button><button class="lang" type="button" data-lang aria-label="Switch language">EN</button></div>
@@ -201,10 +202,10 @@
 </div>
 </section>
 
-<!-- UPLOAD -->
+<!-- UPLOAD (recording analysis) -->
 <section id="v-upload" class="hidden">
-<div class="title"><h2 data-t="upTitle"></h2><span class="note" data-t="demo"></span></div>
-<div class="panel pad">
+<div class="title"><div><h2 data-t="upTitle"></h2><p class="note upsub" data-t="upSub"></p></div></div>
+<div class="panel pad" id="upPick">
 <label class="drop" for="file">
 <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
 <strong style="font-size:20px" data-t="upPick"></strong>
@@ -212,8 +213,8 @@
 <span class="btn" data-t="upBtn"></span>
 </label>
 <input id="file" type="file" accept="video/*" class="hidden">
-<div id="upState" style="margin-top:20px"></div>
 </div>
+<div id="upState" class="hidden" aria-live="polite"></div>
 </section>
 <!-- CITIZEN REPORT -->
 <section id="v-report" class="hidden">
