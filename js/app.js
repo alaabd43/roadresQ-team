@@ -4,8 +4,8 @@ const LF = window.L;
 /* بيانات الدعم ورقم الواتساب */
 const SUPPORT_INFO = {
   version: 'v1.0',
-  whatsapp: '962781975470',
-  phoneDisplay: '0781975470',
+  whatsapp: '962781475772',
+  phoneDisplay: '0781475772',
   email: 'support@roadguard.jo'
 };
 
@@ -22,6 +22,7 @@ const T = {
     soundOn: 'الصوت شغّال',
     soundOff: 'الصوت مكتوم',
     supportBtn: 'الدعم وحالة النظام',
+    toolsMenu: 'الأدوات',
     kicker: 'نظام كشف الحوادث بالذكاء الاصطناعي',
     h1a: 'كل ثانية',
     h1b: 'بتفرق.',
@@ -53,7 +54,8 @@ const T = {
     shotAlt: 'لقطة لحظة الحادث',
     tMap: 'الخريطة والطرق',
     tInc: 'الحوادث',
-    tUp: 'تحليل فيديو',
+    tUp: 'تحليل تسجيل',
+    upSubHint: 'تحقيق · فيديو مواطن · كاميرا غير مربوطة · تجربة كاميرا جديدة',
     demo: '',
     liveTitle: 'حادث مكتشف الآن',
     incType: 'تصادم جانبي',
@@ -110,14 +112,37 @@ const T = {
     stNew: 'جديد',
     stSent: 'تم الإرسال',
     stDone: 'انحل',
-    upTitle: 'تحليل فيديو',
+    upTitle: 'تحليل تسجيل',
     upPick: 'اسحب فيديو هون أو اختاره',
-    upHint: 'MP4 أو AVI · الموديل بيفحص كل فريم',
+    upHint: 'MP4 أو AVI · لتحقيق، فيديو مواطن، تسجيل كاميرا غير مربوطة، أو تجربة كاميرا جديدة',
     upBtn: 'اختار فيديو',
-    upRun: 'جاري التحليل…',
-    upDone: 'خلص التحليل',
-    upNote: 'هاي نتيجة تجريبية للشكل بس. النتيجة الحقيقية بتطلع لما نربط الموديل بالسيرفر.',
-    upFound: 'حادث عند الثانية 7.5 · احتمال 0.87',
+    upCamLbl: 'الكاميرا (اختياري)',
+    upCamOptNone: 'غير محددة (تسجيل خارجي / مواطن)',
+    upStartLbl: 'وقت بداية التسجيل (اختياري)',
+    upStatusLbl: 'حالة التحليل',
+    upWait: 'بالانتظار',
+    upRun: 'جاري التحليل...',
+    upDone: 'تم ✅',
+    resConfirmed: 'تم اكتشاف حادث مؤكد',
+    resPossible: 'حادث محتمل، يحتاج مراجعة',
+    resNone: 'لم يتم اكتشاف حادث',
+    upSummaryTitle: 'ملخص الحادث',
+    upTimeLbl: 'الوقت',
+    upTypeLbl: 'النوع',
+    upSevLbl: 'الخطورة',
+    upEvidLbl: 'الأدلة',
+    upCarsLbl: 'عدد السيارات',
+    upUnitsLbl: 'الوحدات المقترحة',
+    upCrashImgLbl: 'صورة لحظة الحادث',
+    upVlmLbl: 'شو شاف الذكاء الاصطناعي',
+    upPlayClip: 'تشغيل المقطع',
+    upOpenInc: 'فتح بصفحة الحوادث',
+    upDeleteVid: 'حذف الفيديو',
+    upVidDeleted: 'تم حذف الفيديو والنتيجة',
+    sketchTitle: 'مخطط الحادث (الكروكا)',
+    sketchDownload: 'تنزيل الكروكا (PNG)',
+    sketchSaved: 'تم تنزيل الكروكا بصيغة PNG',
+    sketchShowBtn: 'عرض الكروكة',
     foot: 'مشروع تخرج · جامعة آل البيت · عند توقف النظام: انتقل للمراقبة اليدوية للكاميرات وتواصل مع الدعم',
     supTitle: 'الدعم الفني وحالة النظام',
     supLiveHead: 'حالة النظام (لايف)',
@@ -141,7 +166,7 @@ const T = {
     supAutoMeta: 'يُرفق تلقائياً مع البلاغ: نسخة النظام {ver} · الموظف: {emp} · الوقت: {time}',
     supSubmitBtn: 'حفظ وإرسال البلاغ للدعم',
     supSavedMsg: 'تم حفظ البلاغ وتجهيزه للإرسال للدعم الفني',
-    types: ['تصادم جانبي', 'تصادم خلفي', 'تصادم أمامي', 'انحراف عن الطريق', 'تصادم جانبي'],
+    types: ['تصادم جانبي', 'تصادم من الخلف', 'تصادم أمامي', 'انحراف عن الطريق', 'تصادم جانبي'],
     places: ['تقاطع وسط المدينة', 'شارع الجامعة', 'الدوار السابع', 'شارع الملكة رانيا', 'طريق المطار']
   },
   en: {
@@ -156,6 +181,7 @@ const T = {
     soundOn: 'Sound on',
     soundOff: 'Muted',
     supportBtn: 'Support & Status',
+    toolsMenu: 'Tools',
     kicker: 'AI accident detection system',
     h1a: 'Every second',
     h1b: 'counts.',
@@ -187,7 +213,8 @@ const T = {
     shotAlt: 'Frame at the moment of the crash',
     tMap: 'Map & routes',
     tInc: 'Incidents',
-    tUp: 'Analyze video',
+    tUp: 'Analyze recording',
+    upSubHint: 'Investigation · Citizen clip · Unlinked camera · New camera test',
     demo: '',
     liveTitle: 'Accident detected now',
     incType: 'Side collision',
@@ -244,14 +271,37 @@ const T = {
     stNew: 'New',
     stSent: 'Sent',
     stDone: 'Resolved',
-    upTitle: 'Analyze a video',
+    upTitle: 'Analyze recording',
     upPick: 'Drop a video here or choose one',
-    upHint: 'MP4 or AVI · the model checks every frame',
+    upHint: 'MP4 or AVI · for investigation, citizen clips, unlinked cameras, or testing a new camera',
     upBtn: 'Choose video',
-    upRun: 'Analyzing…',
-    upDone: 'Analysis finished',
-    upNote: 'This is a demo result for the look only. The real result appears once the model is connected to the server.',
-    upFound: 'Accident at 7.5 s · probability 0.87',
+    upCamLbl: 'Camera (optional)',
+    upCamOptNone: 'Unspecified (external / citizen clip)',
+    upStartLbl: 'Recording start time (optional)',
+    upStatusLbl: 'Analysis status',
+    upWait: 'Pending',
+    upRun: 'Analyzing...',
+    upDone: 'Done ✅',
+    resConfirmed: 'Confirmed accident detected',
+    resPossible: 'Possible accident, needs review',
+    resNone: 'No accident detected',
+    upSummaryTitle: 'Incident summary',
+    upTimeLbl: 'Time',
+    upTypeLbl: 'Type',
+    upSevLbl: 'Severity',
+    upEvidLbl: 'Evidence',
+    upCarsLbl: 'Vehicles',
+    upUnitsLbl: 'Suggested units',
+    upCrashImgLbl: 'Crash frame',
+    upVlmLbl: 'What AI saw',
+    upPlayClip: 'Play clip',
+    upOpenInc: 'Open in Incidents',
+    upDeleteVid: 'Delete Video',
+    upVidDeleted: 'Video and result removed',
+    sketchTitle: 'Accident Sketch (Kroki)',
+    sketchDownload: 'Download Sketch (PNG)',
+    sketchSaved: 'Sketch downloaded as PNG',
+    sketchShowBtn: 'View Sketch',
     foot: 'Graduation project · Al al-Bayt University · If system stops: switch to manual camera monitoring and contact support',
     supTitle: 'Technical Support & System Status',
     supLiveHead: 'System Status (Live)',
@@ -366,7 +416,67 @@ const playAlertBySeverity = (sevLevel = 2) => {
   }
 };
 
+/* Move "upload" tab into Tools dropdown so main staff nav has only: live, map, incidents */
+const organizeToolsMenu = () => {
+  const uploadTabBtn = document.querySelector('[data-tab="upload"]');
+  if (!uploadTabBtn) return;
+
+  let toolsWrap = $('#toolsDropdownWrap');
+  if (!toolsWrap) {
+    toolsWrap = document.createElement('div');
+    toolsWrap.id = 'toolsDropdownWrap';
+    toolsWrap.style.cssText = 'position:relative;display:inline-block';
+
+    const trigger = document.createElement('button');
+    trigger.id = 'toolsMenuBtn';
+    trigger.type = 'button';
+    trigger.className = 'btn ghost';
+    trigger.style.cssText = 'padding:8px 12px;font-size:13px';
+
+    const menu = document.createElement('div');
+    menu.id = 'toolsMenuPanel';
+    menu.style.cssText = 'display:none;position:absolute;top:calc(100% + 6px);inset-inline-start:0;min-width:230px;background:#16161b;border:1px solid #2e2e38;border-radius:12px;padding:8px;z-index:2000;box-shadow:0 14px 36px rgba(0,0,0,0.6)';
+
+    uploadTabBtn.parentElement.insertBefore(toolsWrap, uploadTabBtn);
+    uploadTabBtn.className = 'btn ghost';
+    uploadTabBtn.style.cssText = 'width:100%;justify-content:flex-start;text-align:start;padding:9px 12px;font-size:13px';
+    menu.appendChild(uploadTabBtn);
+
+    const subNote = document.createElement('div');
+    subNote.id = 'toolsSubNote';
+    subNote.style.cssText = 'padding:6px 12px 4px;font-size:11.5px;color:#a1a1aa;line-height:1.5';
+    menu.appendChild(subNote);
+
+    toolsWrap.appendChild(trigger);
+    toolsWrap.appendChild(menu);
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = menu.style.display === 'block';
+      menu.style.display = open ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', e => {
+      if (!toolsWrap.contains(e.target)) {
+        menu.style.display = 'none';
+      }
+    });
+  }
+
+  const trigger = $('#toolsMenuBtn');
+  if (trigger) {
+    trigger.textContent = '🛠️ ' + t('toolsMenu') + ' ▾';
+    const isUploadActive = location.hash.replace('#', '') === 'upload';
+    trigger.setAttribute('aria-pressed', String(isUploadActive));
+  }
+  const subNote = $('#toolsSubNote');
+  if (subNote) subNote.textContent = t('upSubHint');
+  if (uploadTabBtn) uploadTabBtn.textContent = '🎬 ' + t('tUp');
+};
+
 const ensureHeaderActions = () => {
+  organizeToolsMenu();
+
   const logoutBtn = $('#logout');
   if (!logoutBtn || !logoutBtn.parentElement) return;
 
@@ -407,6 +517,7 @@ const updateHeaderButtons = () => {
   if (supBtn) {
     supBtn.textContent = '🟢 ' + t('supportBtn');
   }
+  organizeToolsMenu();
 };
 
 /* start slideshow */
@@ -926,6 +1037,124 @@ const refreshSupportModal = () => {
   $('#supSubmitBtn').textContent = t('supSubmitBtn');
 };
 
+/* Kroki renderer from kroki.vehicles[].path_px and kroki.impact_px */
+const renderKrokiFromData = (canvas, kroki, crashTypeLabel) => {
+  if (!canvas || !kroki) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#0d1017';
+  ctx.fillRect(0, 0, w, h);
+
+  // Simple road strip
+  ctx.fillStyle = '#1d222e';
+  ctx.fillRect(28, 62, w - 56, h - 122);
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(28, 62, w - 56, h - 122);
+
+  // Dashed lane divider
+  ctx.save();
+  ctx.setLineDash([12, 10]);
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(36, (62 + (h - 60)) / 2);
+  ctx.lineTo(w - 36, (62 + (h - 60)) / 2);
+  ctx.stroke();
+  ctx.restore();
+
+  const palette = ['#38bdf8', '#f59e0b', '#a78bfa', '#34d399'];
+
+  // Draw each vehicle's path_px (line + arrow) in its own color
+  (kroki.vehicles || []).forEach((v, idx) => {
+    const pts = v.path_px || [];
+    if (pts.length < 2) return;
+    const col = v.color || palette[idx % palette.length];
+
+    ctx.save();
+    ctx.strokeStyle = col;
+    ctx.fillStyle = col;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(pts[i][0], pts[i][1]);
+    }
+    ctx.stroke();
+
+    const pPrev = pts[pts.length - 2];
+    const pLast = pts[pts.length - 1];
+    const ang = Math.atan2(pLast[1] - pPrev[1], pLast[0] - pPrev[0]);
+    const head = 10;
+    ctx.beginPath();
+    ctx.moveTo(pLast[0], pLast[1]);
+    ctx.lineTo(pLast[0] - head * Math.cos(ang - 0.45), pLast[1] - head * Math.sin(ang - 0.45));
+    ctx.lineTo(pLast[0] - head * Math.cos(ang + 0.45), pLast[1] - head * Math.sin(ang + 0.45));
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(v.id || `V-${idx + 1}`, pts[0][0], Math.max(76, pts[0][1] - 8));
+    ctx.restore();
+  });
+
+  // Draw red impact dot from kroki.impact_px
+  if (Array.isArray(kroki.impact_px) && kroki.impact_px.length >= 2) {
+    const [ix, iy] = kroki.impact_px;
+    ctx.save();
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(ix, iy, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(ix, iy, 15, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Crash type below diagram
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(crashTypeLabel || '', w / 2, h - 18);
+};
+
+const showIncidentSketchModal = r => {
+  let modal = $('#sketchModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'sketchModal';
+    modal.className = 'modal hidden';
+    applyModalOverlayStyle(modal);
+    modal.innerHTML = `<div class="box" style="max-width:680px;width:100%;background:#16161b;border:1px solid #2e2e38;border-radius:16px;padding:20px;color:#fff;box-shadow:0 20px 50px rgba(0,0,0,0.65)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px">
+        <h3 style="font-size:19px;margin:0">${t('sketchTitle')}</h3>
+        <button type="button" class="btn ghost" id="closeSketchModal" style="padding:6px 10px">✕</button>
+      </div>
+      <canvas id="incSketchCanvas" width="620" height="260" style="width:100%;max-height:260px;border-radius:10px;border:1px solid #282c38;display:block"></canvas>
+    </div>`;
+    document.body.appendChild(modal);
+    $('#closeSketchModal').addEventListener('click', () => setModalVisible(modal, false));
+    modal.addEventListener('click', e => { if (e.target === modal) setModalVisible(modal, false); });
+  }
+
+  const demoKroki = {
+    vehicles: [
+      { id: 'V1', path_px: [[90, 125], [200, 135], [295, 148]] },
+      { id: 'V2', path_px: [[510, 175], [405, 162], [315, 152]] }
+    ],
+    impact_px: [305, 150]
+  };
+  renderKrokiFromData($('#incSketchCanvas'), demoKroki, T[L].types[r.ty]);
+  setModalVisible(modal, true);
+};
+
 /* incidents */
 const INCS = [
   { t: '14:32', ty: 0, pl: 0, sv: 2, st: 'stNew' },
@@ -941,7 +1170,7 @@ const drawInc = () => {
   const r = INCS[isel];
   $('#incDetail').innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><h3 style="font-size:24px">${T[L].types[r.ty]}</h3><div class="note" style="margin-top:4px">${T[L].places[r.pl]} · ${r.t}</div></div><span class="chip sev${r.sv}">${t('sev' + r.sv)}</span></div>
   <div class="media" id="incMedia"><video id="incVid" src="assets/video/cam01.mp4" muted loop playsinline controls preload="metadata"></video><img id="incShot" src="assets/img/crash_frame.jpg" alt="${t('shotAlt')}" class="hidden"><div class="hud" style="top:10px;left:10px" id="incLabel">${t('vidLabel')}</div></div>
-  <div class="mbtns"><button class="btn" type="button" id="shotBtn">${t('shotBtn')}</button><button class="btn light" type="button" id="replayBtn">${t('replayBtn')}</button></div>`;
+  <div class="mbtns"><button class="btn" type="button" id="shotBtn">${t('shotBtn')}</button><button class="btn light" type="button" id="replayBtn">${t('replayBtn')}</button><button class="btn ghost" type="button" id="incSketchBtn" style="border:1px solid #3f3f46">📐 ${t('sketchShowBtn')}</button></div>`;
   const v = $('#incVid'), sh = $('#incShot'), lb = $('#incLabel');
   $('#shotBtn').addEventListener('click', () => {
     const showing = !sh.classList.contains('hidden');
@@ -955,26 +1184,274 @@ const drawInc = () => {
     try { v.currentTime = Math.max(0, (v.duration || 5) - 3.5); } catch (e) {}
     v.play().catch(() => {});
   });
+  $('#incSketchBtn')?.addEventListener('click', () => showIncidentSketchModal(r));
 };
 $('#incRows')?.addEventListener('click', e => { const tr = e.target.closest('[data-i]'); if (!tr) return; isel = +tr.dataset.i; drawInc(); });
 $('#incRows')?.addEventListener('keydown', e => { if (e.key === 'Enter') { const tr = e.target.closest('[data-i]'); if (tr) { isel = +tr.dataset.i; drawInc(); } } });
 
-/* upload */
+/* recording analysis ("تحليل تسجيل") with top upload fields & 4 ordered parts below */
+let activeVideoUrl = null;
+let lastAnalysisData = null;
+
+const formatDisplayTime = (timeS, startTimeStr) => {
+  if (startTimeStr && /^\d{2}:\d{2}(:\d{2})?$/.test(startTimeStr.trim())) {
+    const parts = startTimeStr.trim().split(':').map(Number);
+    const baseSec = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+    const total = Math.max(0, Math.round(baseSec + timeS));
+    const hh = String(Math.floor(total / 3600) % 24).padStart(2, '0');
+    const mm = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+    const ss = String(total % 60).padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+  }
+  return L === 'ar' ? `الثانية ${timeS}` : `${timeS} s`;
+};
+
+const ensureUploadControlsAndSections = () => {
+  const secUp = $('#v-upload');
+  const dropZone = secUp?.querySelector('.drop');
+  const stateBox = $('#upState');
+  if (!secUp || !dropZone || !stateBox) return null;
+
+  if (!$('#upMetaInputs')) {
+    const metaBox = document.createElement('div');
+    metaBox.id = 'upMetaInputs';
+    metaBox.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px;background:#141419;border:1px solid #282832;border-radius:12px;padding:12px';
+    metaBox.innerHTML = `
+      <div>
+        <label id="lblUpCam" for="upCamSel" style="display:block;font-size:12.5px;color:#cbd5e1;margin-bottom:5px"></label>
+        <select id="upCamSel" style="width:100%;background:#0d0d11;color:#fff;border:1px solid #33333d;border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13.5px">
+          <option value=""></option>
+          <option value="CAM-01">CAM-01 · ${t('camN0')}</option>
+          <option value="CAM-02">CAM-02 · ${t('camN1')}</option>
+          <option value="CAM-03">CAM-03 · ${t('camN2')}</option>
+          <option value="CAM-04">CAM-04 · ${t('camN3')}</option>
+        </select>
+      </div>
+      <div>
+        <label id="lblUpStart" for="upStartTime" style="display:block;font-size:12.5px;color:#cbd5e1;margin-bottom:5px"></label>
+        <input id="upStartTime" type="time" step="1" style="width:100%;background:#0d0d11;color:#fff;border:1px solid #33333d;border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13.5px">
+      </div>
+    `;
+    dropZone.parentElement.insertBefore(metaBox, dropZone);
+  }
+
+  $('#lblUpCam').textContent = t('upCamLbl');
+  const camSel = $('#upCamSel');
+  if (camSel && camSel.options[0]) camSel.options[0].textContent = t('upCamOptNone');
+  $('#lblUpStart').textContent = t('upStartLbl');
+
+  let outWrap = $('#upFourPartsWrap');
+  if (!outWrap) {
+    outWrap = document.createElement('div');
+    outWrap.id = 'upFourPartsWrap';
+    outWrap.style.cssText = 'margin-top:16px;display:none';
+    stateBox.parentElement.insertBefore(outWrap, stateBox.nextSibling);
+  }
+  return outWrap;
+};
+
+const renderFourPartsResult = (data) => {
+  const wrap = ensureUploadControlsAndSections();
+  if (!wrap) return;
+  wrap.style.display = 'block';
+
+  const outcome = data.outcome || 'confirmed'; // 'confirmed' | 'possible' | 'none'
+  const bannerCfg = outcome === 'confirmed'
+    ? { icon: '🔴', label: t('resConfirmed'), bg: 'rgba(239,68,68,0.16)', border: '#ef4444', boxCol: '#ef4444' }
+    : outcome === 'possible'
+      ? { icon: '🟠', label: t('resPossible'), bg: 'rgba(249,115,22,0.16)', border: '#f97316', boxCol: '#f97316' }
+      : { icon: '🟢', label: t('resNone'), bg: 'rgba(34,197,94,0.16)', border: '#22c55e', boxCol: '#38bdf8' };
+
+  const involvedCount = Math.max(1, Math.min(2, Number(data.vehicles) || 2));
+  const boxes = [
+    { id: 'V1', x: 24, y: 46, w: 18, h: 22, color: outcome === 'none' ? '#38bdf8' : bannerCfg.boxCol },
+    { id: 'V2', x: 48, y: 44, w: 19, h: 24, color: involvedCount >= 2 && outcome !== 'none' ? bannerCfg.boxCol : '#38bdf8' }
+  ];
+
+  const timeDisplay = formatDisplayTime(data.time_s, data.startTime);
+
+  wrap.innerHTML = `
+    <!-- 1. شريط النتيجة (فوق، كبير) -->
+    <div style="background:${bannerCfg.bg};border:1.5px solid ${bannerCfg.border};border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="font-size:21px;font-weight:800;color:#fff">${bannerCfg.icon} ${bannerCfg.label}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" id="upDeleteBtn" class="btn ghost" style="border:1px solid #3f3f46;padding:7px 12px;font-size:13px">${t('upDeleteVid')}</button>
+      </div>
+    </div>
+
+    <!-- 2. الفيديو بعد التحليل -->
+    <div style="background:#141419;border:1px solid #282832;border-radius:14px;padding:14px;margin-bottom:16px">
+      <div style="position:relative;border-radius:10px;overflow:hidden;background:#09090c;border:1px solid #262630;max-height:360px">
+        <video id="upAnalyzedVideo" src="${data.videoUrl}" controls autoplay muted loop playsinline style="width:100%;max-height:360px;object-fit:contain;display:block"></video>
+        <div style="position:absolute;inset:0;pointer-events:none">
+          ${boxes.map(b => `<div style="position:absolute;left:${b.x}%;top:${b.y}%;width:${b.w}%;height:${b.h}%;border:2.5px solid ${b.color};border-radius:6px;background:rgba(0,0,0,0.12)">
+            <span style="position:absolute;top:-20px;inset-inline-start:0;background:${b.color};color:#000;font-weight:700;font-size:11px;padding:1px 6px;border-radius:4px">${b.id}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div style="margin-top:10px;font-weight:700;font-size:15px;color:#fca5a5;font-family:monospace">ACCIDENT at ${data.time_s} s</div>
+    </div>
+
+    <!-- 3. بطاقة الحادث -->
+    <div style="background:#141419;border:1px solid #282832;border-radius:14px;padding:16px;margin-bottom:16px">
+      <h3 style="font-size:17px;margin:0 0 12px">${t('upSummaryTitle')}</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;font-size:14px;line-height:1.65">
+        <div><span class="note">${t('upTimeLbl')}:</span> <strong>${timeDisplay}</strong></div>
+        <div><span class="note">${t('upTypeLbl')}:</span> <strong>${data.crash_type}</strong></div>
+        <div><span class="note">${t('upSevLbl')}:</span> <strong>${data.severity}</strong></div>
+        <div><span class="note">${t('upEvidLbl')}:</span> ${data.evidence.map(ev => `<span class="chip" style="background:#252530;color:#f8fafc;margin-inline-end:4px">${ev}</span>`).join('')}</div>
+        <div><span class="note">${t('upCarsLbl')}:</span> <strong>${data.vehicles}</strong></div>
+        <div><span class="note">${t('upUnitsLbl')}:</span> <strong>${data.units}</strong></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid #262630;align-items:start">
+        <div>
+          <span class="note" style="display:block;margin-bottom:6px">${t('upCrashImgLbl')}:</span>
+          <img src="${data.crash_image}" alt="${t('shotAlt')}" style="width:100%;max-height:170px;object-fit:cover;border-radius:10px;border:1px solid #2c2c38">
+        </div>
+        <div>
+          <span class="note" style="display:block;margin-bottom:6px">${t('upVlmLbl')}:</span>
+          <p style="margin:0;font-size:14px;line-height:1.7;color:#e2e8f0">${data.vlm_reason}</p>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <button type="button" id="upPlayClipBtn" class="btn light">${t('upPlayClip')} (${data.clip_start_s}s – ${data.clip_end_s}s)</button>
+        <button type="button" id="upOpenIncBtn" class="btn">${t('upOpenInc')}</button>
+      </div>
+    </div>
+
+    <!-- 4. مخطط الحادث (الكروكا) -->
+    <div style="background:#141419;border:1px solid #282832;border-radius:14px;padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <h3 style="font-size:17px;margin:0">${t('sketchTitle')}</h3>
+        <button type="button" id="upKrokiDlBtn" class="btn light" style="padding:6px 12px;font-size:13px">⬇ ${t('sketchDownload')}</button>
+      </div>
+      <canvas id="upKrokiCanvas" width="640" height="270" style="width:100%;max-height:270px;border-radius:10px;border:1px solid #262630;display:block"></canvas>
+    </div>
+  `;
+
+  renderKrokiFromData($('#upKrokiCanvas'), data.kroki, data.crash_type);
+
+  $('#upPlayClipBtn')?.addEventListener('click', () => {
+    const vid = $('#upAnalyzedVideo');
+    if (!vid) return;
+    vid.currentTime = Math.max(0, Number(data.clip_start_s) || 0);
+    vid.play().catch(() => {});
+    const stopAt = Number(data.clip_end_s) || 0;
+    if (stopAt > data.clip_start_s) {
+      const onTime = () => {
+        if (vid.currentTime >= stopAt) {
+          vid.pause();
+          vid.removeEventListener('timeupdate', onTime);
+        }
+      };
+      vid.addEventListener('timeupdate', onTime);
+    }
+  });
+
+  $('#upOpenIncBtn')?.addEventListener('click', () => {
+    INCS.unshift({
+      t: timeDisplay,
+      ty: 1,
+      pl: 0,
+      sv: 3,
+      st: 'stNew'
+    });
+    isel = 0;
+    location.hash = 'incidents';
+    setTab('incidents');
+  });
+
+  $('#upKrokiDlBtn')?.addEventListener('click', () => {
+    const cvs = $('#upKrokiCanvas');
+    if (!cvs) return;
+    const a = document.createElement('a');
+    a.download = `kroki-${Date.now()}.png`;
+    a.href = cvs.toDataURL('image/png');
+    a.click();
+    toast(t('sketchSaved'));
+  });
+
+  $('#upDeleteBtn')?.addEventListener('click', () => {
+    clearRecordingAnalysis(true);
+  });
+};
+
+const clearRecordingAnalysis = (notify = true) => {
+  const wrap = $('#upFourPartsWrap');
+  const vid = $('#upAnalyzedVideo');
+  if (vid) {
+    try { vid.pause(); vid.removeAttribute('src'); vid.load(); } catch (e) {}
+  }
+  if (activeVideoUrl) {
+    try { URL.revokeObjectURL(activeVideoUrl); } catch (e) {}
+    activeVideoUrl = null;
+  }
+  if (wrap) {
+    wrap.innerHTML = '';
+    wrap.style.display = 'none';
+  }
+  if ($('#upState')) $('#upState').innerHTML = '';
+  if ($('#file')) $('#file').value = '';
+  lastAnalysisData = null;
+  if (notify) toast(t('upVidDeleted'));
+};
+
 const runUpload = f => {
   const box = $('#upState');
   if (!box) return;
-  box.innerHTML = `<strong>${f.name}</strong><div class="note" style="margin:6px 0 10px">${t('upRun')}</div><div class="prog"><i id="pg"></i></div>`;
-  let p = 0;
-  const h = setInterval(() => {
-    p += 7;
-    if ($('#pg')) $('#pg').style.width = Math.min(p, 100) + '%';
-    if (p >= 100) {
-      clearInterval(h);
-      playAlertBySeverity(3);
-      box.innerHTML = `<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="chip sev3">${t('upDone')}</span><strong>${t('upFound')}</strong></div><p class="note" style="margin-top:10px">${t('upNote')}</p><button class="btn" type="button" data-go="live" style="margin-top:8px">${t('tLive')}</button>`;
-    }
-  }, 120);
+  clearRecordingAnalysis(false);
+  ensureUploadControlsAndSections();
+
+  const camVal = $('#upCamSel')?.value || '';
+  const startVal = $('#upStartTime')?.value || '';
+  activeVideoUrl = URL.createObjectURL(f);
+
+  // الحالة: بالانتظار ← جاري التحليل... ← تم ✅
+  box.innerHTML = `<strong>${f.name}</strong><div class="note" style="margin:6px 0 10px">${t('upStatusLbl')}: ${t('upWait')}</div>`;
+
+  setTimeout(() => {
+    if (!$('#upState')) return;
+    box.innerHTML = `<strong>${f.name}</strong><div class="note" style="margin:6px 0 10px">${t('upStatusLbl')}: ${t('upRun')}</div><div class="prog"><i id="pg"></i></div>`;
+    let p = 0;
+    const h = setInterval(() => {
+      p += 12;
+      if ($('#pg')) $('#pg').style.width = Math.min(p, 100) + '%';
+      if (p >= 100) {
+        clearInterval(h);
+        playAlertBySeverity(3);
+        box.innerHTML = `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="note">${t('upStatusLbl')}:</span><span class="chip sev3">${t('upDone')}</span><strong>${f.name}</strong>${camVal ? `<span class="note">· ${camVal}</span>` : ''}</div>`;
+
+        lastAnalysisData = {
+          videoUrl: activeVideoUrl,
+          outcome: 'confirmed',
+          time_s: 2.5,
+          startTime: startVal,
+          crash_type: T[L].types[1], // تصادم من الخلف / Rear-end
+          severity: t('sev3'),
+          evidence: ['ضرر', 'قطع على الأرض', 'دخان'],
+          vehicles: 2,
+          units: `2 ${t('amb')} · ${t('fire')} · ${t('police')}`,
+          crash_image: 'assets/img/crash_frame.jpg',
+          vlm_reason: 'Vehicle 1 hits the rear of vehicle 2 at speed causing sudden deceleration and visible impact.',
+          clip_start_s: 1.0,
+          clip_end_s: 5.0,
+          kroki: {
+            vehicles: [
+              { id: 'V1', path_px: [[95, 138], [205, 138], [295, 138]] },
+              { id: 'V2', path_px: [[465, 138], [385, 138], [322, 138]] }
+            ],
+            impact_px: [312, 138]
+          }
+        };
+
+        renderFourPartsResult(lastAnalysisData);
+      }
+    }, 90);
+  }, 350);
 };
+
 $('#file')?.addEventListener('change', e => { if (e.target.files[0]) runUpload(e.target.files[0]); });
 const drop = $('.drop');
 if (drop) {
@@ -1015,6 +1492,7 @@ const applyUnitRestrictedView = () => {
   $$('[data-tab]').forEach(b => {
     if (b.dataset.tab !== 'map') b.style.display = 'none';
   });
+  $('#toolsDropdownWrap')?.style.setProperty('display', 'none');
   $('#logout')?.style.setProperty('display', 'none');
   $('#supportOpenBtn')?.style.setProperty('display', 'none');
   $('#soundBtn')?.style.setProperty('display', 'none');
@@ -1045,6 +1523,9 @@ addEventListener('keydown', e => {
     $('#login')?.classList.add('hidden');
     setModalVisible($('#dispatchModal'), false);
     setModalVisible($('#supportModal'), false);
+    setModalVisible($('#sketchModal'), false);
+    const mp = $('#toolsMenuPanel');
+    if (mp) mp.style.display = 'none';
   }
 });
 
@@ -1083,6 +1564,14 @@ const setTab = name => {
   if (isUnitRouteMode) name = 'map';
   tabs.forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
   secs.forEach(s => s.classList.toggle('hidden', s.id !== 'v-' + name));
+  const mp = $('#toolsMenuPanel');
+  if (mp) mp.style.display = 'none';
+  updateHeaderButtons();
+
+  if (name === 'upload' && !isUnitRouteMode) {
+    ensureUploadControlsAndSections();
+    if (lastAnalysisData) renderFourPartsResult(lastAnalysisData);
+  }
   if (name === 'map') {
     if (isUnitRouteMode) {
       const qSt = +urlParams.get('st');
@@ -1140,6 +1629,13 @@ const applyLang = () => {
   $$('[data-lang]').forEach(b => { b.textContent = L === 'ar' ? 'EN' : 'AR'; });
   if ($('#roleBadge')) $('#roleBadge').textContent = t('roleStaff');
   ensureHeaderActions();
+  ensureUploadControlsAndSections();
+  if (lastAnalysisData) {
+    lastAnalysisData.crash_type = T[L].types[1];
+    lastAnalysisData.severity = t('sev3');
+    lastAnalysisData.units = `2 ${t('amb')} · ${t('fire')} · ${t('police')}`;
+    renderFourPartsResult(lastAnalysisData);
+  }
   updateHeaderButtons();
   refreshSupportModal();
   drawCams(); syncPlanFromRisk(); drawUnits(); drawQuickAdvice(); drawInc(); drawSide(); drawMap();
