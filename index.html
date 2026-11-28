@@ -172,12 +172,12 @@
 
       <label>
         <span data-t="empId"></span>
-        <input name="emp" required autocomplete="off" inputmode="numeric">
+        <input name="emp" required autocomplete="username" inputmode="email" dir="ltr">
       </label>
 
       <label>
         <span data-t="pass"></span>
-        <input name="pw" type="password" required autocomplete="off">
+        <input name="pw" type="password" required autocomplete="current-password">
       </label>
 
     </div>
@@ -251,12 +251,12 @@
             </video>
 
             <div class="box">
-              <b>CRASH · p=0.87</b>
+              <b id="feedBoxTxt">CRASH · p=0.87</b>
             </div>
 
             <div class="hud" style="top:12px;right:12px">
               <span class="dot blink"></span>
-              LIVE · CAM-01
+              LIVE · <span id="feedCam">CAM-01</span>
             </div>
 
             <div class="hud" style="bottom:12px;left:12px" id="clock">
@@ -277,8 +277,8 @@
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
 
             <div>
-              <h3 style="font-size:26px" data-t="incType"></h3>
-              <div class="note" style="margin-top:6px" data-t="incWhere"></div>
+              <h3 style="font-size:26px" id="liveType" data-t="incType"></h3>
+              <div class="note" style="margin-top:6px" id="liveWhere" data-t="incWhere"></div>
             </div>
 
             <span class="chip sev2" id="sevBadge" data-t="sev2"></span>
@@ -289,12 +289,12 @@
 
             <div>
               <span data-t="kTime"></span>
-              <strong class="t">14:32:07</strong>
+              <strong class="t" id="liveTime">14:32:07</strong>
             </div>
 
             <div>
               <span data-t="kCam"></span>
-              <strong>CAM-01</strong>
+              <strong id="liveCam">CAM-01</strong>
             </div>
 
             <div>
@@ -304,7 +304,7 @@
 
             <div>
               <span data-t="kSpeed"></span>
-              <strong data-t="speedVal"></strong>
+              <strong id="liveSpeed" data-t="speedVal"></strong>
             </div>
 
           </div>
@@ -475,6 +475,8 @@
 
 <script src="js/jordan-data.js"></script>
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
 <script src="js/app.js"></script>
 
 </body>

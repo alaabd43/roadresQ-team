@@ -1,6 +1,18 @@
 {
 const LF = window.L;
 
+/* ===== online database (Supabase). Fill js/config.js; without it the site runs in demo mode ===== */
+const SBURL = window.ROADGUARD_SUPABASE_URL || '', SBKEY = window.ROADGUARD_SUPABASE_KEY || '';
+const SB = (window.supabase && /^https:\/\/[^/]+\.supabase\.co/.test(SBURL) && SBKEY && !/paste-/.test(SBKEY)) ? window.supabase.createClient(SBURL, SBKEY) : null;
+/* the AI server (roadresq_backend/app.py) */
+const API = (window.ROADGUARD_API || 'http://localhost:5000').replace(/\/$/, '');
+const esc = x => String(x ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const CT = { 'rear-end': 'ctRear', 'head-on': 'ctHead', 't-bone': 'ctT', 'sideswipe': 'ctSide', 'single': 'ctSingle' };
+const EV = { damage: 'evDamage', debris: 'evDebris', smoke_or_fire: 'evFire', fire: 'evFire', overturned: 'evOver', pedestrian: 'evPed', pedestrian_hit: 'evPed' };
+const SV = { high: 3, medium: 2, low: 1 };
+let CAMDB = null, DBI = null, LIVE = null, liveId = null, uid = null, liveOn = false, RESP = null, HEALTH = null, STAFF_NAME = '', TICKETS = null;
+
 /* بيانات الدعم ورقم الواتساب (قيم مبدئية منفصلة للحوادث والدعم الفني) */
 const SUPPORT_INFO = {
   version: 'v1.0',
@@ -349,6 +361,49 @@ const T = {
   }
 };
 
+Object.assign(T.ar, {
+  ctRear: 'تصادم من الخلف', ctHead: 'تصادم أمامي', ctT: 'تصادم جانبي (حرف T)', ctSide: 'احتكاك جانبي', ctSingle: 'حادث سيارة وحدة', ctX: 'حادث',
+  evDamage: 'ضرر بالسيارة', evDebris: 'قطع على الأرض', evFire: 'دخان أو نار', evOver: 'انقلاب', evPed: 'دهس مشاة',
+  sev0: 'غير معروفة', lvConfirmed: 'مؤكد', lvReview: 'يحتاج مراجعة', kLevel: 'الحالة', noEv: 'لا يوجد',
+  dbErr: 'صار خطأ بقاعدة البيانات:', noInc: 'ما في حوادث لسا.', noOpen: 'ما في حوادث مفتوحة', noOpenP: 'كل الحوادث انحلّت. أي حادث جديد بيطلع هون لحاله.',
+  loginErr: 'البريد أو كلمة السر غلط', notStaff: 'هاد الحساب مش حساب موظف', newInc: 'حادث جديد!',
+  btnAcc: 'تأكيد: حادث', btnNot: 'مش حادث', vAcc: 'الموظف أكّد: حادث', vNot: 'الموظف قال: مش حادث', falseOk: 'تم تسجيله كإنذار غلط', saved: 'انحفظ',
+  noKroki: 'ما في بيانات كافية للكروكا', noMedia: 'ما في فيديو أو صورة لهاد الحادث',
+  upSend: 'جاري رفع الفيديو…', upRunNote: 'التحليل ممكن ياخذ كم دقيقة حسب طول الفيديو. خلّي الصفحة مفتوحة.', upBad: 'هاد الملف مش فيديو',
+  upErrT: 'ما قدرنا نوصل للسيرفر، أو فشل التحليل', upErrHint: 'تأكد إن السيرفر شغّال على: ', upRetry: 'جرّب مرة ثانية', upDemoBtn: 'عرض نتيجة تجريبية',
+  upNoneP: 'النظام فحص الفيديو كامل وما لقى حادث.', upFoundN: 'عدد الحوادث بالفيديو: ', upAccN: 'حادث', demoTag: 'تجريبي: هاي النتيجة مش حقيقية',
+  noReason: 'ما في وصف (محرك الوصف مطفي)', srvOk: 'متصل ({ms}ms)', srvBad: 'غير متصل', dbOk: 'قاعدة البيانات متصلة', dbOff: 'وضع تجريبي (بدون قاعدة بيانات)',
+  dispSaved: 'انحفظ بقاعدة البيانات: تم إرسال الوحدات',
+  btnResolve: '✔ انحل الحادث (سكّر الملف)', resolvedOk: 'تم إغلاق الحادث', tkSaveErr: 'البلاغ انحفظ على هاد الجهاز بس، ما وصل للقاعدة:',
+  contactsBtn: 'جهات إرسال البلاغ', contactsTitle: 'جهات إرسال البلاغ (واتساب)', contactsNote: 'اكتب رقم كل جهة. البلاغ بيروح للجهة اللي بتختارها على الخريطة. مثال: 0791234567',
+  cAmb: 'رقم الإسعاف', cCd: 'رقم الدفاع المدني', cPol: 'رقم الشرطة', contactsSave: 'حفظ الأرقام', contactsSaved: 'انحفظت الأرقام', contactsLocal: 'انحفظت على هاد الجهاز بس (شغّل كود SQL الأرقام بـ Supabase):',
+  dispTo: 'رح ينبعت إلى: ', noNumber: 'ما في رقم لهاي الجهة، حطّه من الأدوات ← جهات إرسال البلاغ (هلأ رح يروح للرقم التجريبي)',
+  tkListHead: 'آخر بلاغات الدعم (بيشوفها كل الفريق)', tkNone: 'ما في بلاغات لسا', tkNew: 'جديد', tkDone: 'انحل', tkMarkDone: 'تم الحل', tkShot: 'صورة'
+});
+Object.assign(T.en, {
+  ctRear: 'Rear-end collision', ctHead: 'Head-on collision', ctT: 'Side (T-bone) collision', ctSide: 'Sideswipe', ctSingle: 'Single-vehicle crash', ctX: 'Accident',
+  evDamage: 'Vehicle damage', evDebris: 'Debris', evFire: 'Smoke or fire', evOver: 'Rollover', evPed: 'Pedestrian hit',
+  sev0: 'Unknown', lvConfirmed: 'Confirmed', lvReview: 'Needs review', kLevel: 'Status', noEv: 'None',
+  dbErr: 'Database error:', noInc: 'No incidents yet.', noOpen: 'No open incidents', noOpenP: 'All incidents are handled. New ones appear here by themselves.',
+  loginErr: 'Wrong email or password', notStaff: 'This account is not a staff account', newInc: 'New incident!',
+  btnAcc: 'Confirm: accident', btnNot: 'Not an accident', vAcc: 'Operator confirmed: accident', vNot: 'Operator said: not an accident', falseOk: 'Marked as a false alarm', saved: 'Saved',
+  noKroki: 'Not enough data for the sketch', noMedia: 'No video or image for this incident',
+  upSend: 'Uploading video…', upRunNote: 'Analysis can take a few minutes depending on video length. Keep this page open.', upBad: 'This file is not a video',
+  upErrT: 'Could not reach the server, or the analysis failed', upErrHint: 'Make sure the server is running at: ', upRetry: 'Try again', upDemoBtn: 'Show a demo result',
+  upNoneP: 'The system checked the whole video and found no accident.', upFoundN: 'Accidents in this video: ', upAccN: 'Accident', demoTag: 'Demo: this result is not real',
+  noReason: 'No description (description engine is off)', srvOk: 'Connected ({ms}ms)', srvBad: 'Not connected', dbOk: 'Database connected', dbOff: 'Demo mode (no database)',
+  dispSaved: 'Saved to the database: units sent',
+  btnResolve: '✔ Resolved (close the incident)', resolvedOk: 'Incident closed', tkSaveErr: 'Saved on this device only, not in the database:',
+  contactsBtn: 'Dispatch contacts', contactsTitle: 'Dispatch contacts (WhatsApp)', contactsNote: 'Type a number for each responder. The report goes to the one you pick on the map. Example: 0791234567',
+  cAmb: 'Ambulance number', cCd: 'Civil defense number', cPol: 'Police number', contactsSave: 'Save numbers', contactsSaved: 'Numbers saved', contactsLocal: 'Saved on this device only (run the numbers SQL in Supabase):',
+  dispTo: 'Will be sent to: ', noNumber: 'No number for this responder; add it in Tools → Dispatch contacts (using the demo number for now)',
+  tkListHead: 'Latest support tickets (the whole team sees them)', tkNone: 'No tickets yet', tkNew: 'New', tkDone: 'Resolved', tkMarkDone: 'Mark resolved', tkShot: 'Screenshot'
+});
+if (SB) {
+  Object.assign(T.ar, { empId: 'البريد الإلكتروني للموظف', loginDemo: 'حسابات الموظفين بيعملها المسؤول من لوحة Supabase.' });
+  Object.assign(T.en, { empId: 'Staff email', loginDemo: 'Staff accounts are created by the admin in Supabase.' });
+}
+
 let L = 'ar';
 try { L = localStorage.getItem('rg-lang') || 'ar'; } catch (e) {}
 const t = k => T[L][k] ?? k;
@@ -422,7 +477,7 @@ const triggerSingleBeep = (freq = 920, dur = 0.16) => {
 };
 
 const playAlertBySeverity = (sevLevel = 2) => {
-  if (!soundOn) return;
+  if (!soundOn || !sevLevel) return;
   clearTimeout(ringTimeout);
   const count = sevLevel >= 3 ? 3 : sevLevel === 2 ? 2 : 1;
   const freq = sevLevel >= 3 ? 1120 : sevLevel === 2 ? 940 : 780;
@@ -436,9 +491,45 @@ const playAlertBySeverity = (sevLevel = 2) => {
 };
 
 /* Save issue locally with ticket ID & show immediate confirmation message */
-const submitTechIssue = (desc, shotName) => {
+const saveTicketDB = async (row, file) => {
+  try {
+    if (file) {
+      const path = `${uid}/ticket-${Date.now()}-${file.name.replace(/[^\w.\-]+/g, '_')}`;
+      const up = await SB.storage.from('reports').upload(path, file, { contentType: file.type || undefined });
+      if (!up.error) row.screenshot = path;
+    }
+    const { error } = await SB.from('support_tickets').insert(row);
+    if (error) throw error;
+    loadTickets();
+  } catch (e) { toast(t('tkSaveErr') + ' ' + (e && e.message || e)); }
+};
+const loadTickets = async () => {
+  if (!SB || role !== 'staff') return;
+  const { data, error } = await SB.from('support_tickets').select('*').order('created_at', { ascending: false }).limit(8);
+  if (!error) { TICKETS = data; drawTickets(); }
+};
+const drawTickets = () => {
+  const box = $('#supTickets');
+  if (!box) return;
+  if (!SB || role !== 'staff') { box.innerHTML = ''; return; }
+  const rows = TICKETS || [];
+  box.innerHTML = `<strong style="display:block;margin-bottom:8px;font-size:15px">${t('tkListHead')}</strong>` + (rows.length ? rows.map(r => `<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:1px solid #23232b;padding:8px 0;font-size:13px"><div><strong dir="ltr">${esc(r.ticket || '#' + r.id)}</strong> · <span class="note">${fmtTime(r.created_at)} · ${esc(r.staff_email || '')}</span><div>${esc(r.description)}${r.screenshot ? ` · <a href="#" data-tkshot="${esc(r.screenshot)}" style="color:#93c5fd">${t('tkShot')}</a>` : ''}</div></div>${r.status === 'done' ? `<span class="chip ok">${t('tkDone')}</span>` : `<button type="button" class="btn ghost" data-tkdone="${r.id}" style="padding:5px 10px;font-size:12px;border:1px solid #3f3f46">${t('tkMarkDone')}</button>`}</div>`).join('') : `<p class="note">${t('tkNone')}</p>`);
+  $$('#supTickets [data-tkdone]').forEach(b => b.addEventListener('click', async () => {
+    const { error } = await SB.from('support_tickets').update({ status: 'done' }).eq('id', +b.dataset.tkdone);
+    if (error) { toast(t('dbErr') + ' ' + error.message); return; }
+    loadTickets();
+  }));
+  $$('#supTickets [data-tkshot]').forEach(a => a.addEventListener('click', async e => {
+    e.preventDefault();
+    const { data } = await SB.storage.from('reports').createSignedUrl(a.dataset.tkshot, 3600);
+    if (data) window.open(data.signedUrl, '_blank');
+  }));
+};
+const submitTechIssue = (desc, shotName, shotFile) => {
   const ticket = 'TCK-' + String(Math.floor(1000 + Math.random() * 9000));
-  const empName = sessionStorage.getItem('rg-emp') || 'STAFF-01';
+  let empName = 'STAFF-01';
+  try { empName = sessionStorage.getItem('rg-emp') || empName; } catch (e) {}
+  if (SB && role === 'staff') saveTicketDB({ ticket, staff_email: empName, version: SUPPORT_INFO.version, description: desc }, shotFile);
   const nowIso = new Date().toLocaleString();
   const cleanShot = shotName || (L === 'ar' ? 'بدون مرفق' : 'No attachment');
 
@@ -490,6 +581,13 @@ const organizeToolsMenu = () => {
     subNote.id = 'toolsSubNote';
     subNote.style.cssText = 'padding:6px 12px 4px;font-size:11.5px;color:#a1a1aa;line-height:1.5';
     menu.appendChild(subNote);
+    const cBtn = document.createElement('button');
+    cBtn.id = 'contactsMenuBtn';
+    cBtn.type = 'button';
+    cBtn.className = 'btn ghost';
+    cBtn.style.cssText = 'width:100%;justify-content:flex-start;text-align:start;padding:9px 12px;font-size:13px;margin-top:6px;border-top:1px solid #2e2e38;border-radius:0 0 8px 8px';
+    cBtn.addEventListener('click', () => { menu.style.display = 'none'; openContactsModal(); });
+    menu.appendChild(cBtn);
 
     toolsWrap.appendChild(trigger);
     toolsWrap.appendChild(menu);
@@ -516,6 +614,7 @@ const organizeToolsMenu = () => {
   const subNote = $('#toolsSubNote');
   if (subNote) subNote.textContent = t('upSubHint');
   if (uploadTabBtn) uploadTabBtn.textContent = '🎬 ' + t('tUp');
+  if ($('#contactsMenuBtn')) $('#contactsMenuBtn').textContent = '📞 ' + t('contactsBtn');
 };
 
 /* Text-based Help & Support Center + inline issue report box at the bottom of the page */
@@ -556,6 +655,7 @@ const ensureFooterSupport = () => {
         </div>
         <div id="rgFootIssueAck" style="display:none;margin-top:10px;padding:9px 12px;border-radius:8px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#86efac;font-size:13px"></div>
       </form>
+      <div id="supTickets" style="margin-top:14px"></div>
     `;
     document.body.appendChild(bar);
 
@@ -563,8 +663,8 @@ const ensureFooterSupport = () => {
       e.preventDefault();
       const desc = $('#rgFootIssueDesc').value.trim();
       if (!desc) return;
-      const shotName = $('#rgFootIssueShot').files?.[0]?.name || '';
-      const ticket = submitTechIssue(desc, shotName);
+      const shotFile = $('#rgFootIssueShot').files?.[0] || null;
+      const ticket = submitTechIssue(desc, shotFile ? shotFile.name : '', shotFile);
 
       const ack = $('#rgFootIssueAck');
       if (ack) {
@@ -583,6 +683,7 @@ const ensureFooterSupport = () => {
   $('#rgFootIssueDesc').placeholder = t('footReportPh');
   $('#rgFootShotLbl').textContent = t('footShotLbl');
   $('#rgFootIssueBtn').textContent = t('footReportBtn');
+  drawTickets();
 };
 
 const ensureHeaderActions = () => {
@@ -672,10 +773,18 @@ $('#start')?.addEventListener('mousemove', e => {
 show(0);
 
 /* live: risk classification + suggested units & ambulance count */
-const currentCrash = { risk: 87, cars: 2 };
+const currentCrash = { risk: 87, cars: 2, db: null };
 const units = { police: true, amb: true, fire: false };
 
 const getPlanByRisk = (risk, cars) => {
+  if (SB && DBI && !currentCrash.db) return { sevLevel: 0, sevKey: 'sev0', recUnits: [], ambCount: 0 };
+  if (currentCrash.db) {
+    const d = currentCrash.db, lv = SV[d.severity] || (risk >= 75 ? 3 : risk >= 40 ? 2 : 1), rec = [];
+    if (+d.police) rec.push('police');
+    if (+d.ambulance) rec.push('amb');
+    if (+d.civil_defense) rec.push('fire');
+    return { sevLevel: lv, sevKey: 'sev' + lv, recUnits: rec, ambCount: +d.ambulance || 0 };
+  }
   if (risk >= 75 || cars >= 3) {
     return { sevLevel: 3, sevKey: 'sev3', recUnits: ['police', 'amb', 'fire'], ambCount: cars >= 3 ? cars : 2 };
   }
@@ -691,6 +800,7 @@ const syncPlanFromRisk = () => {
   units.amb = plan.recUnits.includes('amb');
   units.fire = plan.recUnits.includes('fire');
 
+  if (SB && DBI && !currentCrash.db) return plan;
   if ($('#carsVal')) $('#carsVal').textContent = String(currentCrash.cars);
   const badge = $('#sevBadge');
   if (badge) {
@@ -708,6 +818,7 @@ const drawUnits = () => {
 const drawQuickAdvice = () => {
   const el = $('#quickAdvice');
   if (!el) return;
+  if (SB && DBI && !LIVE) { el.textContent = ''; return; }
   const plan = getPlanByRisk(currentCrash.risk, currentCrash.cars);
   const activeUnits = ['police', 'amb', 'fire'].filter(u => units[u]).map(t);
   const unitsText = activeUnits.length ? activeUnits.join(' + ') : t('police');
@@ -744,14 +855,32 @@ const snap = ll => {
   return bi;
 };
 const emin = e => e[4] / SPD[e[2]] * 60 * TF[e[3]];
-const INC_LL = [32.0255, 36.0215];
-const INCN = snap(INC_LL);
-const ST = [
+let INC_LL = [32.0255, 36.0215];
+let INCN = snap(INC_LL), INC_LABEL = null, incMk = null;
+let ST = [
   { n: 'st0', p: 'pl0', ll: [31.9437, 35.9330], ic: 'M12 5v14M5 12h14' },
   { n: 'st1', p: 'pl1', ll: [32.0640, 36.0890], ic: 'M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 2 2 3 2 0-2-1-4 0-6z' },
   { n: 'st2', p: 'pl2', ll: [32.3420, 36.2080], ic: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z' }
 ];
 ST.forEach(o => o.node = snap(o.ll));
+const ST_ICON = { st0: ST[0].ic, st1: ST[1].ic, st2: ST[2].ic }, ST_KIND = ['ambulance', 'civil_defense', 'police'];
+/* the map follows the database: incident = camera of the live incident; stations = nearest of each kind */
+const setIncident = (ll, label) => {
+  if (!ll || ll.some(v => v == null || isNaN(v))) return;
+  INC_LL = [+ll[0], +ll[1]]; INCN = snap(INC_LL); INC_LABEL = label || null;
+  if (RESP && RESP.length) {
+    const near = ST_KIND.map(k => RESP.filter(r => r.kind === k).sort((a, b) => hav(INC_LL, [a.lat, a.lng]) - hav(INC_LL, [b.lat, b.lng]))[0]).filter(Boolean);
+    if (near.length) {
+      ST = near.map((r, k) => ({ n: 'st' + ST_KIND.indexOf(r.kind), p: 'stDB' + k, ll: [r.lat, r.lng], ic: ST_ICON['st' + ST_KIND.indexOf(r.kind)], node: snap([r.lat, r.lng]) }));
+      near.forEach((r, k) => { T.ar['stDB' + k] = 'من: ' + (r.name_ar || '') + ' (موقع تقريبي)'; T.en['stDB' + k] = 'From: ' + (r.name_en || '') + ' (approx.)'; });
+    }
+  }
+  if (st >= ST.length) st = 0;
+  sel = 0; R = routesFor(ST[st]);
+  if (incMk) incMk.setLatLng(INC_LL);
+  drawMap(); drawSide();
+  if (map) map.fitBounds(LF.latLngBounds([ST[st].ll, INC_LL]).pad(.35), { maxZoom: 11 });
+};
 const dijk = (s, g, pen) => {
   const d = new Float64Array(N.length).fill(1e9), pv = new Int32Array(N.length).fill(-1), pe = new Int32Array(N.length).fill(-1), done = new Uint8Array(N.length);
   d[s] = 0;
@@ -771,6 +900,7 @@ const dijk = (s, g, pen) => {
   return { path, es };
 };
 const routesFor = o => {
+  if (o.node === INCN) { const km = hav(o.ll, INC_LL); return [{ path: [INCN], es: [], sig: 'direct', km, min: km / 30 * 60, jam: 0 }]; }
   const out = [], pen = new Map();
   for (let r = 0; r < 4 && out.length < 3; r++) {
     const res = dijk(o.node, INCN, pen);
@@ -819,10 +949,11 @@ const initMap = () => {
     LF.circleMarker(c.ll, { radius: 4, color: '#fff', weight: 1.5, fillColor: '#111', fillOpacity: 1, interactive: false }).addTo(map);
     LF.marker(c.ll, { pane: 'labels', icon: LF.divIcon({ className: '', html: `<span class="lab city" data-ar="${c.ar}" data-en="${c.en}" style="position:relative;left:8px;top:-8px">${L_lang() === 'ar' ? c.ar : c.en}</span>`, iconSize: [0, 0] }) }).addTo(map);
   });
-  LF.marker(INC_LL, { zIndexOffset: 1000, icon: LF.divIcon({ className: '', html: '<div class="inc blink"></div>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).bindTooltip(() => t('incident') + ' · ' + t('incPlace'), { permanent: true, direction: 'top', offset: [0, -14], className: 'tip' }).addTo(map);
+  incMk = LF.marker(INC_LL, { zIndexOffset: 1000, icon: LF.divIcon({ className: '', html: '<div class="inc blink"></div>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).bindTooltip(() => t('incident') + ' · ' + (INC_LABEL || t('incPlace')), { permanent: true, direction: 'top', offset: [0, -14], className: 'tip' }).addTo(map);
   stLayer = LF.layerGroup().addTo(map);
   rLayer = LF.layerGroup().addTo(map);
   drawMap();
+  if (INC_LABEL) map.fitBounds(LF.latLngBounds([ST[st].ll, INC_LL]).pad(.35), { maxZoom: 11 });
 };
 
 const drawMap = () => {
@@ -860,7 +991,7 @@ $('#stations')?.addEventListener('click', e => {
   if (!b) return;
   st = +b.dataset.st; sel = 0; R = routesFor(ST[st]);
   drawMap(); drawSide();
-  if (map) map.fitBounds(LF.latLngBounds([ST[st].ll, INC_LL]).pad(.35));
+  if (map) map.fitBounds(LF.latLngBounds([ST[st].ll, INC_LL]).pad(.35), { maxZoom: 11 });
 });
 $('#routes')?.addEventListener('click', e => {
   const b = e.target.closest('[data-r]');
@@ -900,6 +1031,8 @@ const getUnitBreakdownEn = (ambCount) => {
   return parts.length ? parts.join(' + ') : t(ST[st].n);
 };
 
+const curType = () => LIVE ? t(CT[LIVE.crash_type] || 'ctX') : t('incType');
+const curPlace = () => INC_LABEL || t('incPlace');
 const buildUnitRouteUrl = () => {
   const base = `${location.origin}${location.pathname}`;
   const params = new URLSearchParams({
@@ -907,7 +1040,9 @@ const buildUnitRouteUrl = () => {
     st: String(st),
     r: String(sel),
     risk: String(currentCrash.risk),
-    cars: String(currentCrash.cars)
+    cars: String(currentCrash.cars),
+    ilat: INC_LL[0].toFixed(5), ilng: INC_LL[1].toFixed(5), il: curPlace(),
+    slat: ST[st].ll[0].toFixed(5), slng: ST[st].ll[1].toFixed(5), sk: ST[st].n, sp: t(ST[st].p)
   });
   return `${base}?${params.toString()}#map`;
 };
@@ -927,8 +1062,8 @@ const buildDispatchText = () => {
     return [
       `بلاغ طوارئ عاجل — نظام ROADGUARD`,
       `الجهة المستهدفة: ${t(ST[st].n)} — التفاصيل: ${unitDetails}`,
-      `الحادث والخطورة: ${t('incType')} · ${t(plan.sevKey)} (${currentCrash.risk}%)`,
-      `الموقع: ${t('incPlace')}`,
+      `الحادث والخطورة: ${curType()} · ${t(plan.sevKey)} (${currentCrash.risk}%)`,
+      `الموقع: ${curPlace()}`,
       `نقطة الانطلاق: ${t(ST[st].p).replace('من: ', '')}`,
       `المسافة والوقت المتوقع: ${distKm} كم · ${etaMin} دقيقة`,
       `رابط توجيه المسار للوحدة الميدانية: ${responderRouteUrl}`,
@@ -941,8 +1076,8 @@ const buildDispatchText = () => {
   return [
     `URGENT DISPATCH — ROADGUARD AI`,
     `Target Unit: ${t(ST[st].n)} — Details: ${unitDetailsEn}`,
-    `Incident & Severity: ${t('incType')} · ${t(plan.sevKey)} (${currentCrash.risk}%)`,
-    `Location: ${t('incPlace')}`,
+    `Incident & Severity: ${curType()} · ${t(plan.sevKey)} (${currentCrash.risk}%)`,
+    `Location: ${curPlace()}`,
     `Origin: ${t(ST[st].p).replace('From: ', '')}`,
     `Distance & ETA: ${distKm} km · ${etaMin} min`,
     `Field Route Navigation Link: ${responderRouteUrl}`,
@@ -978,6 +1113,56 @@ const animateRouteCar = () => {
   anim = requestAnimationFrame(step);
 };
 
+/* dispatch numbers: one per responder kind, saved in Supabase (responders.phone) + this browser */
+const KIND_BY_N = { st0: 'ambulance', st1: 'civil_defense', st2: 'police' };
+let DISPATCH = { ambulance: '', civil_defense: '', police: '' };
+try { DISPATCH = { ...DISPATCH, ...JSON.parse(localStorage.getItem('rg-dispatch') || '{}') }; } catch (e) {}
+const syncDispatchFromDB = () => {
+  if (!RESP) return;
+  Object.keys(DISPATCH).forEach(k => { const r = RESP.find(x => x.kind === k && x.phone); if (r) DISPATCH[k] = r.phone; });
+};
+const waNumber = ph => { let d = String(ph || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('0')) d = '962' + d.slice(1); return d; };
+const openContactsModal = () => {
+  let modal = $('#contactsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'contactsModal';
+    modal.className = 'modal hidden';
+    applyModalOverlayStyle(modal);
+    modal.innerHTML = `<form id="contactsForm" class="box" style="max-width:480px;width:100%;background:#16161b;border:1px solid #2e2e38;border-radius:16px;padding:20px;color:#fff">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px"><h3 id="cTitle" style="font-size:20px;margin:0"></h3><button type="button" class="btn ghost" id="closeContacts" style="padding:6px 10px">✕</button></div>
+      <p class="note" id="cNote" style="margin:0 0 14px"></p>
+      ${['ambulance', 'civil_defense', 'police'].map(k => `<label style="display:block;margin-bottom:12px"><span id="cl-${k}" style="display:block;font-size:13px;color:#cbd5e1;margin-bottom:5px"></span><input name="${k}" type="tel" dir="ltr" placeholder="07XXXXXXXX" style="width:100%;background:#0d0d11;color:#fff;border:1px solid #33333d;border-radius:8px;padding:9px 11px;font-size:15px"></label>`).join('')}
+      <button type="submit" class="btn" id="cSave" style="width:100%"></button>
+    </form>`;
+    document.body.appendChild(modal);
+    $('#closeContacts').addEventListener('click', () => setModalVisible(modal, false));
+    modal.addEventListener('click', e => { if (e.target === modal) setModalVisible(modal, false); });
+    $('#contactsForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const f = e.target;
+      ['ambulance', 'civil_defense', 'police'].forEach(k => { DISPATCH[k] = f[k].value.trim(); });
+      try { localStorage.setItem('rg-dispatch', JSON.stringify(DISPATCH)); } catch (x) {}
+      if (SB && role === 'staff') {
+        for (const k of Object.keys(DISPATCH)) {
+          const { error } = await SB.from('responders').update({ phone: DISPATCH[k] || null }).eq('kind', k);
+          if (error) { toast(t('contactsLocal') + ' ' + error.message); setModalVisible(modal, false); return; }
+        }
+        loadData();
+      }
+      toast(t('contactsSaved'));
+      setModalVisible(modal, false);
+    });
+  }
+  $('#cTitle').textContent = '📞 ' + t('contactsTitle');
+  $('#cNote').textContent = t('contactsNote');
+  $('#cl-ambulance').textContent = t('cAmb'); $('#cl-civil_defense').textContent = t('cCd'); $('#cl-police').textContent = t('cPol');
+  $('#cSave').textContent = t('contactsSave');
+  const f = $('#contactsForm');
+  ['ambulance', 'civil_defense', 'police'].forEach(k => { f[k].value = DISPATCH[k] || ''; });
+  setModalVisible(modal, true);
+};
+
 const showDispatchModal = () => {
   let modal = $('#dispatchModal');
   if (!modal) {
@@ -990,6 +1175,7 @@ const showDispatchModal = () => {
         <h3 id="dispTitle" style="font-size:20px;margin:0"></h3>
         <button type="button" class="btn ghost" id="closeDispModal" style="padding:6px 10px">✕</button>
       </div>
+      <p id="dispTo" class="note" style="margin:0 0 10px;color:#fff"></p>
       <pre id="dispPreview" style="white-space:pre-line;font-family:inherit;background:#0e0e12;border:1px solid #2b2b33;border-radius:12px;padding:14px;font-size:14px;line-height:1.75;margin:0 0 14px;color:#f3f3f6"></pre>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <a id="dispSendLink" target="_blank" rel="noopener" class="btn" style="flex:1;text-align:center;text-decoration:none"></a>
@@ -999,8 +1185,14 @@ const showDispatchModal = () => {
     document.body.appendChild(modal);
     $('#closeDispModal').addEventListener('click', () => setModalVisible(modal, false));
     modal.addEventListener('click', e => { if (e.target === modal) setModalVisible(modal, false); });
-    $('#dispSendLink').addEventListener('click', () => {
+    $('#dispSendLink').addEventListener('click', async () => {
       toast(t('dispatchSentToast'));
+      if (!SB || !LIVE || role !== 'staff') return;
+      const on = ['police', 'amb', 'fire'].filter(u => units[u]);
+      const { error } = await SB.from('incidents').update({ status: 'units_sent', units_sent: on.join(','), operator_verdict: 'accident', verdict_by: uid, verdict_at: new Date().toISOString() }).eq('id', LIVE.id);
+      if (error) { toast(t('dbErr') + ' ' + error.message); return; }
+      toast(t('dispSaved'));
+      loadData();
     });
     $('#dispCopyBtn').addEventListener('click', () => {
       const txt = $('#dispPreview').textContent;
@@ -1014,7 +1206,10 @@ const showDispatchModal = () => {
   $('#dispPreview').textContent = msg;
   const sendBtn = $('#dispSendLink');
   sendBtn.textContent = '🚨 ' + t('dispatchSendNow');
-  sendBtn.href = `https://wa.me/${SUPPORT_INFO.dispatchWhatsapp}?text=${encodeURIComponent(msg)}`;
+  const kind = KIND_BY_N[ST[st].n] || 'ambulance', ph = DISPATCH[kind];
+  const num = waNumber(ph) || SUPPORT_INFO.dispatchWhatsapp;
+  $('#dispTo').textContent = ph ? t('dispTo') + t(ST[st].n) + ' · ' + ph : '⚠️ ' + t('noNumber');
+  sendBtn.href = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
   $('#dispCopyBtn').textContent = t('dispatchCopy');
   setModalVisible(modal, true);
 };
@@ -1091,6 +1286,7 @@ const openSupportModal = () => {
         <div id="supMetaInfo" class="note" style="margin-bottom:12px;font-size:12.5px"></div>
         <button type="submit" id="supSubmitBtn" class="btn" style="width:100%"></button>
       </form>
+
     </div>`;
     document.body.appendChild(modal);
 
@@ -1102,33 +1298,51 @@ const openSupportModal = () => {
       e.preventDefault();
       const desc = $('#supDesc').value.trim();
       if (!desc) return;
-      const shotName = $('#supShot').files?.[0]?.name || '';
-      submitTechIssue(desc, shotName);
+      const shotFile = $('#supShot').files?.[0] || null;
+      submitTechIssue(desc, shotFile ? shotFile.name : '', shotFile);
       e.target.reset();
     });
   }
 
   refreshSupportModal();
   setModalVisible(modal, true);
+  checkHealth();
+  drawTickets();
+  loadTickets();
+};
+
+/* real system status: ping the AI server and count cameras from the database */
+const checkHealth = async () => {
+  const t0 = performance.now();
+  let srv = null;
+  try {
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 4000);
+    const r = await fetch(API + '/api/health', { signal: ctl.signal }); clearTimeout(tm);
+    srv = r.ok ? Math.round(performance.now() - t0) : null;
+  } catch (e) { srv = null; }
+  HEALTH = { srv };
+  refreshSupportModal();
 };
 
 const refreshSupportModal = () => {
   const modal = $('#supportModal');
   if (!modal) return;
   const secAgo = Math.max(1, Math.floor((Date.now() - lastDataSyncMs) / 1000) % 60);
-  const empName = sessionStorage.getItem('rg-emp') || 'STAFF-01';
+  let empName = 'STAFF-01';
+  try { empName = sessionStorage.getItem('rg-emp') || empName; } catch (e) {}
   const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   $('#supModalTitle').textContent = t('supTitle');
   $('#supLiveTitle').textContent = t('supLiveHead');
   $('#supSrvLbl').textContent = t('supSrv');
-  $('#supSrvVal').textContent = t('supSrvVal');
+  const srvTxt = HEALTH ? (HEALTH.srv != null ? t('srvOk').replace('{ms}', HEALTH.srv) : t('srvBad')) : t('supSrvVal');
+  $('#supSrvVal').textContent = srvTxt;
   $('#supAiLbl').textContent = t('supAi');
-  $('#supAiVal').textContent = t('supAiVal').replace('{sec}', secAgo);
+  $('#supAiVal').textContent = HEALTH && HEALTH.srv == null ? t('srvBad') : t('supAiVal').replace('{sec}', secAgo);
   $('#supCamsLbl').textContent = t('supCams');
-  $('#supCamsVal').textContent = '3 / 4';
+  $('#supCamsVal').textContent = CAMDB ? `${CAMDB.filter(c => c.online).length} / ${CAMDB.length}` : '3 / 4';
   $('#supSyncLbl').textContent = t('supSync');
-  $('#supSyncVal').textContent = t('supSyncVal').replace('{sec}', secAgo);
+  $('#supSyncVal').textContent = t('supSyncVal').replace('{sec}', secAgo) + ' · ' + (SB ? t('dbOk') : t('dbOff'));
 
   $('#supContactTitle').textContent = t('supContactHead');
   $('#supWaLbl').textContent = t('supWaLabel');
@@ -1184,6 +1398,25 @@ const getKrokiByIncidentType = (ty = 0) => {
       { id: 'V2', color: '#f59e0b', path_px: [[485, 136], [395, 136], [325, 136]] }
     ],
     impact_px: [312, 136]
+  };
+};
+
+/* the AI gives the sketch in video pixels; scale it to the canvas road area */
+const fitKroki = (k, w = 620, h = 260) => {
+  if (!k || !Array.isArray(k.vehicles) || !k.vehicles.length) return null;
+  const pts = [];
+  k.vehicles.forEach(v => (v.path_px || []).forEach(q => { if (q && q.length > 1) pts.push(q); }));
+  if (Array.isArray(k.impact_px) && k.impact_px.length > 1) pts.push(k.impact_px);
+  if (pts.length < 2) return null;
+  const xs = pts.map(q => +q[0]), ys = pts.map(q => +q[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const bx = 60, by = 82, bw = w - 120, bh = h - 160;
+  const sc = Math.min(bw / Math.max(1, x1 - x0), bh / Math.max(1, y1 - y0));
+  const ox = bx + (bw - (x1 - x0) * sc) / 2, oy = by + (bh - (y1 - y0) * sc) / 2;
+  const f = q => [ox + (q[0] - x0) * sc, oy + (q[1] - y0) * sc];
+  return {
+    vehicles: k.vehicles.map((v, i) => ({ id: 'V' + (v.vehicle || i + 1), path_px: (v.path_px || []).filter(q => q && q.length > 1).map(f) })),
+    impact_px: Array.isArray(k.impact_px) && k.impact_px.length > 1 ? f(k.impact_px) : null
   };
 };
 
@@ -1301,9 +1534,10 @@ const showIncidentSketchModal = r => {
     });
   }
 
-  const krokiData = r.kroki || getKrokiByIncidentType(r.ty);
-  $('#incSketchMeta').textContent = `${T[L].places[r.pl]} · ${r.t}`;
-  renderKrokiFromData($('#incSketchCanvas'), krokiData, T[L].types[r.ty]);
+  const krokiData = r.db ? fitKroki(r.kroki) : (r.kroki || getKrokiByIncidentType(r.ty));
+  $('#incSketchMeta').textContent = r.db ? r.meta : `${T[L].places[r.pl]} · ${r.t}`;
+  if (!krokiData) { toast(t('noKroki')); return; }
+  renderKrokiFromData($('#incSketchCanvas'), krokiData, r.db ? r.label : T[L].types[r.ty]);
   setModalVisible(modal, true);
 };
 
@@ -1316,8 +1550,66 @@ const INCS = [
   { t: '08:02', ty: 4, pl: 4, sv: 1, st: 'stDone', kroki: getKrokiByIncidentType(4) }
 ];
 let isel = 0;
+const fmtTime = iso => { if (!iso) return '—'; const d = new Date(iso), td = new Date(); return (d.toDateString() === td.toDateString() ? '' : d.toISOString().slice(5, 10) + ' ') + d.toTimeString().slice(0, 5); };
+const camName = id => { const c = CAMDB && CAMDB.find(x => x.id === id); return c ? ((L === 'ar' ? c.name_ar : c.name_en) || id) : (id === 'upload' ? (L === 'ar' ? 'تسجيل مرفوع' : 'Uploaded video') : (id || '—')); };
+const stKey = r => r.status === 'closed' ? 'stDone' : r.status === 'units_sent' ? 'stSent' : 'stNew';
+const evList = r => { const ev = Array.isArray(r.evidence) ? [...r.evidence] : (r.evidence || '').split(',').filter(Boolean); if (+r.fire && !ev.includes('smoke_or_fire')) ev.push('smoke_or_fire'); if (+r.overturned) ev.push('overturned'); if (+r.pedestrian_hit) ev.push('pedestrian_hit'); return ev; };
+const evLabels = r => evList(r).map(e => EV[e] ? t(EV[e]) : e);
+const sevOf = r => SV[r.severity] || 0;
+const unitsLine = r => [[r.ambulance, 'amb'], [r.civil_defense, 'fire'], [r.police, 'police']].filter(([n]) => +n > 0).map(([n, k]) => (+n > 1 ? n + ' ' : '') + t(k)).join(' · ') || t('noEv');
+const drawIncDB = () => {
+  if (!DBI.length) { $('#incRows').innerHTML = `<tr><td colspan="5">${t('noInc')}</td></tr>`; $('#incDetail').innerHTML = ''; return; }
+  if (isel >= DBI.length) isel = 0;
+  $('#incRows').innerHTML = DBI.map((r, k) => { const sv = sevOf(r); return `<tr data-i="${k}" tabindex="0" aria-selected="${k === isel}"><td class="t">${fmtTime(r.created_at)}</td><td>${esc(camName(r.camera_id))}</td><td>${t(CT[r.crash_type] || 'ctX')}${r.level === 'review' ? ' · ' + t('lvReview') : ''}</td><td><span class="chip sev${sv}">${t('sev' + sv)}</span></td><td class="hide-sm">${t(stKey(r))}</td></tr>`; }).join('');
+  const r = DBI[isel], sv = sevOf(r), ev = evLabels(r);
+  const verdict = r.operator_verdict
+    ? `<p class="chip ${r.operator_verdict === 'accident' ? 'sev3' : 'ok'}" style="margin:14px 0 0;display:inline-block">${r.operator_verdict === 'accident' ? t('vAcc') : t('vNot')}</p>`
+    + (r.operator_verdict === 'accident' && r.status !== 'closed' ? ` <button class="btn light" type="button" id="resolveBtn" style="margin-top:14px">${t('btnResolve')}</button>` : '')
+    : `<div class="row" style="margin-top:14px"><button class="btn" type="button" data-verdict="accident">${t('btnAcc')}</button><button class="btn light" type="button" data-verdict="not_accident">${t('btnNot')}</button></div>`;
+  const media = r.video || r.crash_image
+    ? `<div class="media" id="incMedia">${r.video ? `<video id="incVid" src="${esc(r.video)}" muted playsinline controls preload="metadata"></video>` : ''}${r.crash_image ? `<img id="incShot" src="${esc(r.crash_image)}" alt="${t('shotAlt')}" class="${r.video ? 'hidden' : ''}">` : ''}<div class="hud" style="top:10px;left:10px" id="incLabel">${r.video ? t('vidLabel') : t('shotLabel')}</div></div>`
+    : `<p class="note" style="margin:14px 0">${t('noMedia')}</p>`;
+  $('#incDetail').innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><h3 style="font-size:24px">${t(CT[r.crash_type] || 'ctX')}</h3><div class="note" style="margin-top:4px">${esc(camName(r.camera_id))} · ${fmtTime(r.created_at)}</div></div><span class="chip sev${sv}">${t('sev' + sv)}</span></div>
+  ${media}
+  <div class="mbtns">${r.video && r.crash_image ? `<button class="btn" type="button" id="shotBtn">${t('shotBtn')}</button><button class="btn light" type="button" id="replayBtn">${t('replayBtn')}</button>` : ''}<button class="btn ghost" type="button" id="incSketchBtn" style="border:1px solid #3f3f46">📐 ${t('sketchShowBtn')}</button></div>
+  <div class="kv"><div><span>${t('kCars')}</span><strong>${esc(r.vehicles ?? '—')}</strong></div><div><span>${t('kLevel')}</span><strong>${r.level === 'review' ? t('lvReview') : t('lvConfirmed')}</strong></div><div><span>${t('kCam')}</span><strong>${esc(r.camera_id || '—')}</strong></div><div><span>${t('thStatus')}</span><strong>${t(stKey(r))}</strong></div></div>
+  <div><span class="note">${t('upEvidLbl')}</span><div class="tags">${(ev.length ? ev : [t('noEv')]).map(x => `<span class="tagx">${esc(x)}</span>`).join('')}</div></div>
+  <div style="margin-top:12px"><span class="note">${t('unitsTitle')}:</span> <strong>${esc(unitsLine(r))}</strong></div>
+  ${r.reason ? `<div style="margin-top:12px"><span class="note">${t('upVlmLbl')}:</span> <span>${esc(r.reason)}</span></div>` : ''}
+  ${verdict}`;
+  const v = $('#incVid'), sh = $('#incShot'), lb = $('#incLabel');
+  if (v && sh) {
+    $('#shotBtn').addEventListener('click', () => {
+      const showing = !sh.classList.contains('hidden');
+      sh.classList.toggle('hidden', showing); v.classList.toggle('hidden', !showing);
+      if (!showing) { v.pause(); lb.textContent = t('shotLabel'); $('#shotBtn').textContent = t('vidBtn'); }
+      else { lb.textContent = t('vidLabel'); $('#shotBtn').textContent = t('shotBtn'); v.play().catch(() => {}); }
+    });
+    $('#replayBtn').addEventListener('click', () => {
+      sh.classList.add('hidden'); v.classList.remove('hidden'); lb.textContent = t('vidLabel'); $('#shotBtn').textContent = t('shotBtn');
+      try { v.currentTime = Math.max(0, +r.clip_start_s || 0); } catch (e) {}
+      v.play().catch(() => {});
+    });
+  }
+  $('#incSketchBtn')?.addEventListener('click', () => showIncidentSketchModal({ db: true, kroki: r.kroki_json, meta: `${camName(r.camera_id)} · ${fmtTime(r.created_at)}`, label: t(CT[r.crash_type] || 'ctX') }));
+  $('#resolveBtn')?.addEventListener('click', async () => {
+    const { error } = await SB.from('incidents').update({ status: 'closed' }).eq('id', r.id);
+    if (error) { toast(t('dbErr') + ' ' + error.message); return; }
+    toast(t('resolvedOk'));
+    loadData();
+  });
+  $$('#incDetail [data-verdict]').forEach(b => b.addEventListener('click', async () => {
+    const vd = b.dataset.verdict, upd = { operator_verdict: vd, verdict_by: uid, verdict_at: new Date().toISOString() };
+    if (vd === 'not_accident') upd.status = 'closed';
+    const { error } = await SB.from('incidents').update(upd).eq('id', r.id);
+    if (error) { toast(t('dbErr') + ' ' + error.message); return; }
+    toast(vd === 'accident' ? t('vAcc') : t('falseOk'));
+    loadData();
+  }));
+};
 const drawInc = () => {
   if (!$('#incRows') || !$('#incDetail')) return;
+  if (SB && DBI) return drawIncDB();
   $('#incRows').innerHTML = INCS.map((r, k) => `<tr data-i="${k}" tabindex="0" aria-selected="${k === isel}"><td class="t">${r.t}</td><td>${T[L].places[r.pl]}</td><td>${T[L].types[r.ty]}</td><td><span class="chip sev${r.sv}">${t('sev' + r.sv)}</span></td><td class="hide-sm">${t(r.st)}</td></tr>`).join('');
   const r = INCS[isel];
   $('#incDetail').innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><h3 style="font-size:24px">${T[L].types[r.ty]}</h3><div class="note" style="margin-top:4px">${T[L].places[r.pl]} · ${r.t}</div></div><span class="chip sev${r.sv}">${t('sev' + r.sv)}</span></div>
@@ -1402,6 +1694,46 @@ const ensureUploadControlsAndSections = () => {
   return outWrap;
 };
 
+/* ---- turn one AI incident (from the server, or the demo) into the 4-part result ---- */
+let upAlerts = [], upSel = 0, upVideo = null, upRun = 0;
+const DEMO_ALERT = {
+  demo: true, level: 'confirmed', time_s: 2.5, crash_type: 'rear-end', severity: 'high',
+  evidence: ['damage', 'debris', 'smoke_or_fire'], vehicles: 2, police: 1, ambulance: 2, civil_defense: 1,
+  crash_image_url: 'assets/img/crash_frame.jpg',
+  reason: 'Vehicle 1 hits the rear of vehicle 2 at speed causing sudden deceleration and visible impact.',
+  clip_start_s: 1.0, clip_end_s: 5.0
+};
+const r1 = x => Math.round((+x || 0) * 10) / 10;
+const alertToData = a => {
+  const sv = sevOf(a), ev = evLabels(a);
+  return {
+    demo: !!a.demo,
+    real: !a.demo,
+    incId: a.id ?? null,
+    videoUrl: upVideo || activeVideoUrl,
+    outcome: a.level === 'review' ? 'possible' : 'confirmed',
+    time_s: r1(a.time_s),
+    startTime: lastAnalysisData ? lastAnalysisData.startTime : '',
+    crash_type: t(CT[a.crash_type] || 'ctX'),
+    severity: t('sev' + sv),
+    sevLevel: sv,
+    evidence: ev.length ? ev : [t('noEv')],
+    vehicles: a.vehicles ?? '—',
+    units: unitsLine(a),
+    crash_image: a.crash_image_url || null,
+    vlm_reason: a.reason || a.vlm_reason || t('noReason'),
+    clip_start_s: r1(a.clip_start_s),
+    clip_end_s: r1(a.clip_end_s),
+    kroki: a.demo ? getKrokiByIncidentType(1) : fitKroki(a.kroki || a.kroki_json, 640, 270)
+  };
+};
+const renderUploadResult = () => {
+  if (!lastAnalysisData) return;
+  if (!upAlerts.length) { renderFourPartsResult({ outcome: 'none', videoUrl: upVideo || activeVideoUrl }); return; }
+  if (upSel >= upAlerts.length) upSel = 0;
+  renderFourPartsResult({ ...alertToData(upAlerts[upSel]), count: upAlerts.length });
+};
+
 const renderFourPartsResult = (data) => {
   const wrap = ensureUploadControlsAndSections();
   if (!wrap) return;
@@ -1414,56 +1746,58 @@ const renderFourPartsResult = (data) => {
       ? { icon: '🟠', label: t('resPossible'), bg: 'rgba(249,115,22,0.16)', border: '#f97316', boxCol: '#f97316' }
       : { icon: '🟢', label: t('resNone'), bg: 'rgba(34,197,94,0.16)', border: '#22c55e', boxCol: '#38bdf8' };
 
-  const involvedCount = Math.max(1, Math.min(2, Number(data.vehicles) || 2));
-  const boxes = [
-    { id: 'V1', x: 24, y: 46, w: 18, h: 22, color: outcome === 'none' ? '#38bdf8' : bannerCfg.boxCol },
-    { id: 'V2', x: 48, y: 44, w: 19, h: 24, color: involvedCount >= 2 && outcome !== 'none' ? bannerCfg.boxCol : '#38bdf8' }
-  ];
-
-  const timeDisplay = formatDisplayTime(data.time_s, data.startTime);
-
-  wrap.innerHTML = `
+  const banner = `
     <!-- 1. شريط النتيجة (فوق، كبير) -->
     <div style="background:${bannerCfg.bg};border:1.5px solid ${bannerCfg.border};border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-      <div style="font-size:21px;font-weight:800;color:#fff">${bannerCfg.icon} ${bannerCfg.label}</div>
+      <div>
+        <div style="font-size:21px;font-weight:800;color:#fff">${bannerCfg.icon} ${bannerCfg.label}</div>
+        ${data.demo ? `<div class="note" style="margin-top:4px">${t('demoTag')}</div>` : ''}
+        ${outcome === 'none' ? `<div class="note" style="margin-top:4px">${t('upNoneP')}</div>` : ''}
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button type="button" id="upDeleteBtn" class="btn ghost" style="border:1px solid #3f3f46;padding:7px 12px;font-size:13px">${t('upDeleteVid')}</button>
       </div>
     </div>
+    ${data.count > 1 ? `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px"><span class="note">${t('upFoundN')}${data.count}</span>${upAlerts.map((a, k) => `<button type="button" class="btn ${k === upSel ? '' : 'ghost'}" data-upsel="${k}" style="padding:6px 12px;font-size:13px;${k === upSel ? '' : 'border:1px solid #3f3f46'}">${t('upAccN')} ${k + 1} · ${r1(a.time_s)}s</button>`).join('')}</div>` : ''}`;
 
+  const videoBlock = `
     <!-- 2. الفيديو بعد التحليل -->
     <div style="background:#141419;border:1px solid #282832;border-radius:14px;padding:14px;margin-bottom:16px">
       <div style="position:relative;border-radius:10px;overflow:hidden;background:#09090c;border:1px solid #262630;max-height:360px">
-        <video id="upAnalyzedVideo" src="${data.videoUrl}" controls autoplay muted loop playsinline style="width:100%;max-height:360px;object-fit:contain;display:block"></video>
-        <div style="position:absolute;inset:0;pointer-events:none">
-          ${boxes.map(b => `<div style="position:absolute;left:${b.x}%;top:${b.y}%;width:${b.w}%;height:${b.h}%;border:2.5px solid ${b.color};border-radius:6px;background:rgba(0,0,0,0.12)">
-            <span style="position:absolute;top:-20px;inset-inline-start:0;background:${b.color};color:#000;font-weight:700;font-size:11px;padding:1px 6px;border-radius:4px">${b.id}</span>
-          </div>`).join('')}
-        </div>
+        <video id="upAnalyzedVideo" src="${esc(data.videoUrl || '')}" controls autoplay muted loop playsinline style="width:100%;max-height:360px;object-fit:contain;display:block"></video>
       </div>
-      <div style="margin-top:10px;font-weight:700;font-size:15px;color:#fca5a5;font-family:monospace">ACCIDENT at ${data.time_s} s</div>
-    </div>
+      ${outcome !== 'none' ? `<div style="margin-top:10px;font-weight:700;font-size:15px;color:#fca5a5;font-family:monospace">ACCIDENT at ${data.time_s} s</div>` : ''}
+    </div>`;
 
+  if (outcome === 'none') {
+    wrap.innerHTML = banner + videoBlock;
+    $('#upDeleteBtn')?.addEventListener('click', () => clearRecordingAnalysis(true));
+    return;
+  }
+
+  const timeDisplay = formatDisplayTime(data.time_s, data.startTime);
+
+  wrap.innerHTML = banner + videoBlock + `
     <!-- 3. بطاقة الحادث -->
     <div style="background:#141419;border:1px solid #282832;border-radius:14px;padding:16px;margin-bottom:16px">
       <h3 style="font-size:17px;margin:0 0 12px">${t('upSummaryTitle')}</h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;font-size:14px;line-height:1.65">
         <div><span class="note">${t('upTimeLbl')}:</span> <strong>${timeDisplay}</strong></div>
-        <div><span class="note">${t('upTypeLbl')}:</span> <strong>${data.crash_type}</strong></div>
-        <div><span class="note">${t('upSevLbl')}:</span> <strong>${data.severity}</strong></div>
-        <div><span class="note">${t('upEvidLbl')}:</span> ${data.evidence.map(ev => `<span class="chip" style="background:#252530;color:#f8fafc;margin-inline-end:4px">${ev}</span>`).join('')}</div>
-        <div><span class="note">${t('upCarsLbl')}:</span> <strong>${data.vehicles}</strong></div>
-        <div><span class="note">${t('upUnitsLbl')}:</span> <strong>${data.units}</strong></div>
+        <div><span class="note">${t('upTypeLbl')}:</span> <strong>${esc(data.crash_type)}</strong></div>
+        <div><span class="note">${t('upSevLbl')}:</span> <strong>${esc(data.severity)}</strong></div>
+        <div><span class="note">${t('upEvidLbl')}:</span> ${data.evidence.map(ev => `<span class="chip" style="background:#252530;color:#f8fafc;margin-inline-end:4px">${esc(ev)}</span>`).join('')}</div>
+        <div><span class="note">${t('upCarsLbl')}:</span> <strong>${esc(data.vehicles)}</strong></div>
+        <div><span class="note">${t('upUnitsLbl')}:</span> <strong>${esc(data.units)}</strong></div>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid #262630;align-items:start">
-        <div>
+        ${data.crash_image ? `<div>
           <span class="note" style="display:block;margin-bottom:6px">${t('upCrashImgLbl')}:</span>
-          <img src="${data.crash_image}" alt="${t('shotAlt')}" style="width:100%;max-height:170px;object-fit:cover;border-radius:10px;border:1px solid #2c2c38">
-        </div>
+          <img src="${esc(data.crash_image)}" alt="${t('shotAlt')}" style="width:100%;max-height:170px;object-fit:cover;border-radius:10px;border:1px solid #2c2c38">
+        </div>` : ''}
         <div>
           <span class="note" style="display:block;margin-bottom:6px">${t('upVlmLbl')}:</span>
-          <p style="margin:0;font-size:14px;line-height:1.7;color:#e2e8f0">${data.vlm_reason}</p>
+          <p style="margin:0;font-size:14px;line-height:1.7;color:#e2e8f0">${esc(data.vlm_reason)}</p>
         </div>
       </div>
 
@@ -1477,13 +1811,15 @@ const renderFourPartsResult = (data) => {
     <div style="background:#141419;border:1px solid #282832;border-radius:14px;padding:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
         <h3 style="font-size:17px;margin:0">${t('sketchTitle')}</h3>
-        <button type="button" id="upKrokiDlBtn" class="btn light" style="padding:6px 12px;font-size:13px">⬇ ${t('sketchDownload')}</button>
+        ${data.kroki ? `<button type="button" id="upKrokiDlBtn" class="btn light" style="padding:6px 12px;font-size:13px">⬇ ${t('sketchDownload')}</button>` : ''}
       </div>
-      <canvas id="upKrokiCanvas" width="640" height="270" style="width:100%;max-height:270px;border-radius:10px;border:1px solid #262630;display:block"></canvas>
+      ${data.kroki ? `<canvas id="upKrokiCanvas" width="640" height="270" style="width:100%;max-height:270px;border-radius:10px;border:1px solid #262630;display:block"></canvas>` : `<p class="note">${t('noKroki')}</p>`}
     </div>
   `;
 
-  renderKrokiFromData($('#upKrokiCanvas'), data.kroki, data.crash_type);
+  if (data.kroki) renderKrokiFromData($('#upKrokiCanvas'), data.kroki, data.crash_type);
+
+  $$('[data-upsel]').forEach(b => b.addEventListener('click', () => { upSel = +b.dataset.upsel; renderUploadResult(); }));
 
   $('#upPlayClipBtn')?.addEventListener('click', () => {
     const vid = $('#upAnalyzedVideo');
@@ -1503,17 +1839,10 @@ const renderFourPartsResult = (data) => {
   });
 
   $('#upOpenIncBtn')?.addEventListener('click', () => {
-    INCS.unshift({
-      t: timeDisplay,
-      ty: 1,
-      pl: 0,
-      sv: 3,
-      st: 'stNew',
-      kroki: data.kroki
-    });
+    if (data.real && data.incId != null && SB) { openIncById(data.incId); return; }
+    INCS.unshift({ t: timeDisplay, ty: 1, pl: 0, sv: 3, st: 'stNew', kroki: data.kroki });
     isel = 0;
     location.hash = 'incidents';
-    setTab('incidents');
   });
 
   $('#upKrokiDlBtn')?.addEventListener('click', () => {
@@ -1532,6 +1861,7 @@ const renderFourPartsResult = (data) => {
 };
 
 const clearRecordingAnalysis = (notify = true) => {
+  upRun++;
   const wrap = $('#upFourPartsWrap');
   const vid = $('#upAnalyzedVideo');
   if (vid) {
@@ -1547,55 +1877,75 @@ const clearRecordingAnalysis = (notify = true) => {
   }
   if ($('#upState')) $('#upState').innerHTML = '';
   if ($('#file')) $('#file').value = '';
-  lastAnalysisData = null;
+  lastAnalysisData = null; upAlerts = []; upVideo = null; upSel = 0;
   if (notify) toast(t('upVidDeleted'));
 };
 
-const runUpload = f => {
+/* real analysis: send the video to the AI server, wait for the job, read its incidents */
+const runUpload = async f => {
   const box = $('#upState');
-  if (!box) return;
+  if (!box || !f) return;
+  if (f.type && !f.type.startsWith('video')) { toast(t('upBad')); return; }
   clearRecordingAnalysis(false);
   ensureUploadControlsAndSections();
+  const id = upRun;
 
   const camVal = $('#upCamSel')?.value || '';
   const startVal = $('#upStartTime')?.value || '';
   activeVideoUrl = URL.createObjectURL(f);
+  const head = `<strong>${esc(f.name)}</strong>${camVal ? ` <span class="note">· ${esc(camVal)}</span>` : ''}`;
+  const status = (k, extra = '') => { box.innerHTML = `${head}<div class="note" style="margin:6px 0 10px">${t('upStatusLbl')}: ${t(k)}</div>${extra}`; };
 
-  box.innerHTML = `<strong>${f.name}</strong><div class="note" style="margin:6px 0 10px">${t('upStatusLbl')}: ${t('upWait')}</div>`;
+  status('upSend', '<div class="prog run"><i></i></div>');
+  try {
+    const fd = new FormData();
+    fd.append('video', f);
+    fd.append('camera_id', camVal || 'upload');
+    const r = await fetch(API + '/api/analyze', { method: 'POST', body: fd });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    if (id !== upRun) return;
+    status('upRun', `<div class="prog run"><i></i></div><p class="note" style="margin-top:8px">${t('upRunNote')}</p>`);
 
-  setTimeout(() => {
-    if (!$('#upState')) return;
-    box.innerHTML = `<strong>${f.name}</strong><div class="note" style="margin:6px 0 10px">${t('upStatusLbl')}: ${t('upRun')}</div><div class="prog"><i id="pg"></i></div>`;
-    let p = 0;
-    const h = setInterval(() => {
-      p += 12;
-      if ($('#pg')) $('#pg').style.width = Math.min(p, 100) + '%';
-      if (p >= 100) {
-        clearInterval(h);
-        playAlertBySeverity(3);
-        box.innerHTML = `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="note">${t('upStatusLbl')}:</span><span class="chip sev3">${t('upDone')}</span><strong>${f.name}</strong>${camVal ? `<span class="note">· ${camVal}</span>` : ''}</div>`;
+    let job = null;
+    for (let i = 0; i < 900; i++) {
+      await sleep(2000);
+      if (id !== upRun) return;
+      try { job = await (await fetch(API + '/api/jobs/' + j.job_id)).json(); } catch (e) { continue; }
+      if (job.status !== 'processing') break;
+    }
+    if (!job || job.status === 'processing') throw new Error('timeout');
+    if (job.status === 'error') { let m = ''; try { m = JSON.parse(job.result_json).error; } catch (e) {} throw new Error(m || 'error'); }
 
-        lastAnalysisData = {
-          videoUrl: activeVideoUrl,
-          outcome: 'confirmed',
-          time_s: 2.5,
-          startTime: startVal,
-          crash_type: T[L].types[1],
-          severity: t('sev3'),
-          evidence: ['ضرر', 'قطع على الأرض', 'دخان'],
-          vehicles: 2,
-          units: `2 ${t('amb')} · ${t('fire')} · ${t('police')}`,
-          crash_image: 'assets/img/crash_frame.jpg',
-          vlm_reason: 'Vehicle 1 hits the rear of vehicle 2 at speed causing sudden deceleration and visible impact.',
-          clip_start_s: 1.0,
-          clip_end_s: 5.0,
-          kroki: getKrokiByIncidentType(1)
-        };
+    let mine = [];
+    for (let k = 0; k < 5; k++) {
+      try {
+        const all = await (await fetch(API + '/api/incidents')).json();
+        mine = all.filter(x => x.job_id === j.job_id).sort((a, b) => a.time_s - b.time_s);
+        break;
+      } catch (e) { await sleep(2000); }
+    }
+    if (id !== upRun) return;
 
-        renderFourPartsResult(lastAnalysisData);
-      }
-    }, 90);
-  }, 350);
+    upAlerts = mine; upSel = 0; upVideo = (mine[0] && mine[0].video_url) || null;
+    lastAnalysisData = { startTime: startVal };
+    box.innerHTML = `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="note">${t('upStatusLbl')}:</span><span class="chip ${mine.length ? 'sev3' : 'ok'}">${t('upDone')}</span>${head}</div>`;
+    renderUploadResult();
+    if (mine.length) playAlertBySeverity(sevOf(mine[0]) || 2);
+    if (SB && role === 'staff') loadData();
+  } catch (e) {
+    if (id !== upRun) return;
+    box.innerHTML = `<div class="uperr"><strong>${t('upErrT')}</strong><p class="note" style="margin:6px 0 0">${t('upErrHint')}<span dir="ltr">${esc(API)}</span></p><p class="note" style="margin:4px 0 0" dir="ltr">${esc(e && e.message || e)}</p>
+      <div class="row" style="margin-top:12px"><button class="btn" type="button" id="upRetryBtn">${t('upRetry')}</button><button class="btn light" type="button" id="upDemoBtn">${t('upDemoBtn')}</button></div></div>`;
+    $('#upRetryBtn')?.addEventListener('click', () => runUpload(f));
+    $('#upDemoBtn')?.addEventListener('click', () => {
+      upAlerts = [DEMO_ALERT]; upSel = 0; upVideo = null;
+      lastAnalysisData = { startTime: startVal };
+      box.innerHTML = `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="note">${t('upStatusLbl')}:</span><span class="chip sev3">${t('upDone')}</span>${head}</div>`;
+      renderUploadResult();
+      playAlertBySeverity(3);
+    });
+  }
 };
 
 $('#file')?.addEventListener('change', e => { if (e.target.files[0]) runUpload(e.target.files[0]); });
@@ -1608,14 +1958,25 @@ if (drop) {
 /* cameras + clock */
 let cam = 0;
 const CAMS = [{ id: 'CAM-01', on: 1 }, { id: 'CAM-02', on: 1 }, { id: 'CAM-03', on: 1 }, { id: 'CAM-04', on: 0 }];
+const camList = () => CAMDB ? CAMDB.map(c => ({ id: c.id, on: c.online, name: (L === 'ar' ? c.name_ar : c.name_en) || c.id })) : CAMS.map((c, k) => ({ ...c, name: t('camN' + k) }));
+const openFor = id => (DBI || []).find(r => r.camera_id === id && r.status === 'open' && r.operator_verdict !== 'not_accident');
 const drawCams = () => {
   if (!$('#cams')) return;
-  $('#cams').innerHTML = CAMS.map((c, k) => `<button type="button" class="cam" data-cam="${k}" aria-pressed="${k === cam}"><span class="dot ${c.on ? '' : 'off'} ${k === 0 ? 'blink' : ''}"></span><span>${c.id}<small>${t('camN' + k)} · ${c.on ? (k === 0 ? t('camAlert') : t('camOk')) : t('camOff')}</small></span></button>`).join('');
+  const list = camList();
+  $('#cams').innerHTML = list.map((c, k) => { const al = CAMDB ? !!openFor(c.id) : k === 0; return `<button type="button" class="cam" data-cam="${k}" aria-pressed="${k === cam}"><span class="dot ${c.on ? '' : 'off'} ${al ? 'blink' : ''}"></span><span>${esc(c.id)}<small>${esc(c.name)} · ${c.on ? (al ? t('camAlert') : t('camOk')) : t('camOff')}</small></span></button>`; }).join('');
 };
 $('#cams')?.addEventListener('click', e => {
   const b = e.target.closest('[data-cam]');
   if (!b) return;
   const k = +b.dataset.cam;
+  if (CAMDB) {
+    const c = CAMDB[k], inc = c && openFor(c.id);
+    cam = k; drawCams();
+    if (!inc) { toast(c.id + ' · ' + t(c.online ? 'camOk' : 'camOff')); return; }
+    LIVE = inc; drawLive(); syncPlanFromRisk(); drawUnits(); drawQuickAdvice(); placeLive();
+    playAlertBySeverity(sevOf(inc) || 2);
+    return;
+  }
   if (k !== 0) { toast(t('camDemo')); return; }
   cam = k; drawCams();
   const plan = getPlanByRisk(currentCrash.risk, currentCrash.cars);
@@ -1639,6 +2000,7 @@ const applyUnitRestrictedView = () => {
     if (b.dataset.tab !== 'map') b.style.display = 'none';
   });
   $('#toolsDropdownWrap')?.style.setProperty('display', 'none');
+  $('#contactsMenuBtn')?.style.setProperty('display', 'none');
   $('#logout')?.style.setProperty('display', 'none');
   $('#soundBtn')?.style.setProperty('display', 'none');
   $$('[data-lang]').forEach(b => { b.style.display = 'none'; });
@@ -1650,6 +2012,82 @@ const applyUnitRestrictedView = () => {
     banner.textContent = t('unitRouteBadge');
     $('#v-map').prepend(banner);
   }
+};
+
+const drawRole = () => { const b = $('#roleBadge'); if (b) b.textContent = t('roleStaff') + (STAFF_NAME ? ' · ' + STAFF_NAME : ''); };
+const loadStaffName = async email => {
+  if (!SB || !uid) return;
+  const { data } = await SB.from('staff').select('full_name,emp_no').eq('id', uid).maybeSingle();
+  STAFF_NAME = (data && (data.full_name || data.emp_no)) || email || '';
+  drawRole();
+};
+/* ===== live data from the database ===== */
+const pickLive = () => (DBI || []).find(r => r.status === 'open' && r.operator_verdict !== 'not_accident') || null;
+const placeLive = () => {
+  const cm = LIVE && CAMDB && CAMDB.find(x => x.id === LIVE.camera_id);
+  if (cm && cm.lat != null) setIncident([cm.lat, cm.lng], (L === 'ar' ? cm.name_ar : cm.name_en) || cm.id);
+  else if (RESP) setIncident(INC_LL, INC_LABEL);
+};
+const drawLive = () => {
+  const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  if (!SB || !DBI) return;
+  const r = LIVE, badge = $('#sevBadge'), fbox = $('#v-live .feed .box');
+  if (!r) {
+    currentCrash.db = null;
+    set('#liveType', t('noOpen')); set('#liveWhere', t('noOpenP'));
+    if (badge) { badge.className = 'chip ok'; badge.textContent = '✓'; }
+    ['#liveTime', '#liveCam', '#carsVal', '#liveSpeed'].forEach(x => set(x, '—'));
+    if (fbox) fbox.style.display = 'none';
+    return;
+  }
+  const sv = sevOf(r);
+  currentCrash.db = r;
+  currentCrash.cars = +r.vehicles || 1;
+  currentCrash.risk = { 3: 90, 2: 60, 1: 30 }[sv] || 50;
+  set('#liveType', t(CT[r.crash_type] || 'ctX'));
+  set('#liveWhere', camName(r.camera_id));
+  set('#liveTime', new Date(r.created_at).toTimeString().slice(0, 8));
+  set('#liveCam', r.camera_id || '—'); set('#feedCam', r.camera_id || '—');
+  set('#liveSpeed', r.level === 'review' ? t('lvReview') : t('lvConfirmed'));
+  set('#feedBoxTxt', 'CRASH · ' + (r.level === 'review' ? t('lvReview') : t('lvConfirmed')));
+  if (fbox) fbox.style.display = r.video ? 'none' : '';
+  if (r.id !== liveId) {
+    liveId = r.id;
+    const fv = $('#feedVid');
+    if (fv && r.video && fv.getAttribute('src') !== r.video) { fv.src = r.video; fv.play().catch(() => {}); }
+  }
+};
+const loadData = async () => {
+  if (!SB || role !== 'staff') return;
+  try {
+    const [c, i, rs] = await Promise.all([
+      SB.from('cameras').select('*').order('id'),
+      SB.from('incidents').select('*').order('created_at', { ascending: false }).limit(200),
+      SB.from('responders').select('*')
+    ]);
+    const er = c.error || i.error;
+    if (er) { toast(t('dbErr') + ' ' + er.message); return; }
+    const keep = DBI && DBI[isel] ? DBI[isel].id : null;
+    CAMDB = c.data; DBI = i.data; lastDataSyncMs = Date.now();
+    if (keep != null) { const k = DBI.findIndex(r => r.id === keep); isel = k < 0 ? 0 : k; }
+    if (!rs.error) { RESP = rs.data; syncDispatchFromDB(); }
+    LIVE = (LIVE && DBI.find(r => r.id === LIVE.id && r.status === 'open' && r.operator_verdict !== 'not_accident')) || pickLive();
+    drawCams(); drawLive(); syncPlanFromRisk(); drawUnits(); drawQuickAdvice(); drawInc(); placeLive();
+  } catch (x) { toast(t('dbErr') + ' ' + (x && x.message || x)); }
+};
+const startLive = () => {
+  if (!SB || liveOn) return;
+  liveOn = true;
+  SB.channel('rg-live').on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, p => {
+    if (p.eventType === 'INSERT') { toast(t('newInc')); playAlertBySeverity(SV[p.new && p.new.severity] || 2); LIVE = null; }
+    loadData();
+  }).subscribe();
+};
+const openIncById = async id => {
+  location.hash = 'incidents';
+  await loadData();
+  const k = (DBI || []).findIndex(r => String(r.id) === String(id));
+  if (k >= 0) { isel = k; drawInc(); }
 };
 
 /* staff login */
@@ -1669,6 +2107,7 @@ addEventListener('keydown', e => {
     setModalVisible($('#dispatchModal'), false);
     setModalVisible($('#supportModal'), false);
     setModalVisible($('#sketchModal'), false);
+    setModalVisible($('#contactsModal'), false);
     const mp = $('#toolsMenuPanel');
     if (mp) mp.style.display = 'none';
   }
@@ -1680,19 +2119,33 @@ $('#loginForm')?.addEventListener('submit', async e => {
   const pwVal = e.target.pw?.value || '';
 
   if (!empVal || !pwVal) return;
+  if (SB) {
+    const btn = e.target.querySelector('[type=submit]');
+    if (btn) btn.disabled = true;
+    try {
+      const { data, error } = await SB.auth.signInWithPassword({ email: empVal, password: pwVal });
+      if (error) { toast(t('loginErr')); return; }
+      const stf = await SB.from('staff').select('id').eq('id', data.user.id).maybeSingle();
+      if (!stf.data) { await SB.auth.signOut(); toast(t('notStaff')); return; }
+      uid = data.user.id;
+    } catch (x) { toast(t('dbErr') + ' ' + (x && x.message || x)); return; }
+    finally { if (btn) btn.disabled = false; }
+  }
   role = 'staff';
   try {
     sessionStorage.setItem('rg-role', role);
     sessionStorage.setItem('rg-emp', empVal);
   } catch (x) {}
+  if (SB) { loadData(); startLive(); loadStaffName(empVal); loadTickets(); }
   $('#login')?.classList.add('hidden');
   e.target.reset();
   location.hash = 'live';
   route();
 });
 
-$('#logout')?.addEventListener('click', () => {
-  role = null;
+$('#logout')?.addEventListener('click', async () => {
+  role = null; DBI = null; CAMDB = null; LIVE = null; liveId = null; currentCrash.db = null; STAFF_NAME = ''; TICKETS = null; drawRole(); drawTickets();
+  if (SB) { try { await SB.auth.signOut(); } catch (x) {} }
   try {
     sessionStorage.removeItem('rg-role');
     sessionStorage.removeItem('rg-emp');
@@ -1715,7 +2168,7 @@ const setTab = name => {
 
   if (name === 'upload' && !isUnitRouteMode) {
     ensureUploadControlsAndSections();
-    if (lastAnalysisData) renderFourPartsResult(lastAnalysisData);
+    if (lastAnalysisData) renderUploadResult();
   }
   if (name === 'map') {
     if (isUnitRouteMode) {
@@ -1725,7 +2178,14 @@ const setTab = name => {
       const qCars = +urlParams.get('cars');
       if (!Number.isNaN(qRisk) && qRisk > 0) currentCrash.risk = qRisk;
       if (!Number.isNaN(qCars) && qCars > 0) currentCrash.cars = qCars;
-      if (!Number.isNaN(qSt) && ST[qSt]) {
+      const qi = [+urlParams.get('ilat'), +urlParams.get('ilng')], qs = [+urlParams.get('slat'), +urlParams.get('slng')];
+      if (urlParams.get('ilat') && !qi.some(isNaN)) { INC_LL = qi; INCN = snap(INC_LL); INC_LABEL = urlParams.get('il') || null; if (incMk) incMk.setLatLng(INC_LL); }
+      if (urlParams.get('slat') && !qs.some(isNaN)) {
+        const sk = ST_ICON[urlParams.get('sk')] ? urlParams.get('sk') : 'st0';
+        T.ar.stU = T.en.stU = urlParams.get('sp') || t(sk);
+        ST = [{ n: sk, p: 'stU', ll: qs, ic: ST_ICON[sk], node: snap(qs) }];
+        st = 0; R = routesFor(ST[0]);
+      } else if (!Number.isNaN(qSt) && ST[qSt]) {
         st = qSt;
         R = routesFor(ST[st]);
       }
@@ -1780,18 +2240,13 @@ const applyLang = () => {
   document.documentElement.dir = L === 'ar' ? 'rtl' : 'ltr';
   $$('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
   $$('[data-lang]').forEach(b => { b.textContent = L === 'ar' ? 'EN' : 'AR'; });
-  if ($('#roleBadge')) $('#roleBadge').textContent = t('roleStaff');
+  drawRole();
   ensureHeaderActions();
   ensureUploadControlsAndSections();
-  if (lastAnalysisData) {
-    lastAnalysisData.crash_type = T[L].types[1];
-    lastAnalysisData.severity = t('sev3');
-    lastAnalysisData.units = `2 ${t('amb')} · ${t('fire')} · ${t('police')}`;
-    renderFourPartsResult(lastAnalysisData);
-  }
+  if (lastAnalysisData) renderUploadResult();
   updateHeaderButtons();
   refreshSupportModal();
-  drawCams(); syncPlanFromRisk(); drawUnits(); drawQuickAdvice(); drawInc(); drawSide(); drawMap();
+  drawCams(); drawLive(); syncPlanFromRisk(); drawUnits(); drawQuickAdvice(); drawInc(); drawSide(); drawMap();
   applyUnitRestrictedView();
 };
 $$('[data-lang]').forEach(b => b.addEventListener('click', () => {
@@ -1806,7 +2261,7 @@ const route = () => {
     $('#app')?.classList.remove('hidden');
     ensureFooterSupport();
     setTab('map');
-    return;سس
+    return;
   }
 
   const h = (location.hash || '#start').replace('#', '');
@@ -1830,4 +2285,18 @@ const route = () => {
 addEventListener('hashchange', route);
 applyLang();
 route();
+/* restore the real login after a page refresh */
+if (SB && !isUnitRouteMode) SB.auth.getSession().then(async ({ data }) => {
+  const s = data && data.session;
+  if (!s || s.user.is_anonymous) { if (role) { role = null; try { sessionStorage.removeItem('rg-role'); } catch (x) {} route(); } return; }
+  uid = s.user.id;
+  const stf = await SB.from('staff').select('id').eq('id', uid).maybeSingle();
+  role = stf.data ? 'staff' : null;
+  try { role ? sessionStorage.setItem('rg-role', role) : sessionStorage.removeItem('rg-role'); } catch (x) {}
+  route();
+  if (role === 'staff') {
+    try { sessionStorage.setItem('rg-emp', s.user.email || ''); } catch (x) {}
+    loadData(); startLive(); loadStaffName(s.user.email); loadTickets();
+  }
+});
 }

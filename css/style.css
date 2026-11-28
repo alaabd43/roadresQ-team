@@ -290,3 +290,15 @@ tbody tr:last-child td{border-bottom:0}
 .kv{border-top:1px solid #ffffff14;border-bottom:1px solid #ffffff14;padding:16px 0}
 #why .why{border-top:1px solid #ffffff1f !important;padding-top:18px}
 @media (max-width:900px){.levels>.panel+.panel{border-inline-start:0 !important;padding-inline-start:0;border-top:1px solid #ffffff14 !important;padding-top:24px}}
+
+/* ===== added for the real backend (Supabase + AI server) ===== */
+.prog{overflow:hidden;border-radius:4px}
+.prog.run i{width:35%;animation:upbar 1.3s ease-in-out infinite}
+@keyframes upbar{from{margin-inline-start:-35%}to{margin-inline-start:100%}}
+@media (prefers-reduced-motion:reduce){.prog.run i{animation:none;width:100%;opacity:.5}}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tagx{padding:4px 12px;border-radius:999px;background:#ffffff12;font-size:13px}
+.sev0{background:#3a3a40;color:#fff}
+.chip.ok{background:var(--green);color:#111}
+.uperr{padding:18px;border-radius:16px;background:#E3242B14;border:1px solid #E3242B55;margin-bottom:16px}
+.btn:disabled{opacity:.45;cursor:not-allowed}

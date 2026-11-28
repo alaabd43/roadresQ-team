@@ -1,0 +1,16 @@
+ultralytics>=8.3
+lap
+opencv-python
+numpy
+pandas
+joblib
+pillow
+flask
+# the brain (Qwen3-VL) - needs an NVIDIA GPU (~17 GB for the 8B model)
+torch
+transformers>=4.57
+accelerate
+# online database + browser-friendly video
+supabase>=2.4
+python-dotenv
+imageio-ffmpeg
